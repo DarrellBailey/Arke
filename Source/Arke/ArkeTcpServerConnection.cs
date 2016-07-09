@@ -34,6 +34,10 @@ namespace Arke
             Client.StartListening();
         }
 
+        /// <summary>
+        /// Send A Message.
+        /// </summary>
+        /// <param name="message">The message to send.</param>
         public async Task Send(ArkeMessage message)
         {
             await Client.SendAsync(message);
@@ -51,5 +55,9 @@ namespace Arke
         #endregion
     }
 
+    #region Delegates
+
     public delegate void ConnectionMessageReceivedHandler(ArkeMessage message, ArkeTcpServerConnection connection);
+
+    #endregion
 }
