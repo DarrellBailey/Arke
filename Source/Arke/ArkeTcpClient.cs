@@ -20,6 +20,8 @@ namespace Arke
 
         protected CancellationTokenSource listenCts = new CancellationTokenSource();
 
+        protected Dictionary<int, List<ClientMessageReceivedHandler>> ChannelHandlers = new Dictionary<int, List<ClientMessageReceivedHandler>>();
+
         /// <summary>
         /// The underlying Tcp Client object for this Arke Client.
         /// </summary>
@@ -153,6 +155,15 @@ namespace Arke
         protected void OnMessageReceived(ArkeMessage message)
         {
             MessageReceived?.Invoke(message);
+
+            List<ClientMessageReceivedHandler> handlers;
+
+            bool hasHandlers = ChannelHandlers.TryGetValue(message.Channel, out handlers);
+
+            if (hasHandlers)
+            {
+                handlers.ForEach(callback => callback(message));
+            }
         }
 
         /// <summary>
@@ -196,6 +207,26 @@ namespace Arke
             Array.Copy(message.Content, 0, transferBytes, 9, message.Content.Length);
 
             await TcpClient.GetStream().WriteAsync(transferBytes, 0, transferBytes.Length);
+        }
+
+        /// <summary>
+        /// Register a callback for a specific channel. You can register more than one callback on a single channel.
+        /// </summary>
+        /// <param name="channel">The channel to register to.</param>
+        /// <param name="callback">The callback to register.</param>
+        public void RegisterChannelCallback(int channel, ClientMessageReceivedHandler callback)
+        {
+            if (!ChannelHandlers.ContainsKey(channel))
+            {
+                ChannelHandlers.Add(channel, new List<ClientMessageReceivedHandler>());
+            }
+
+            List<ClientMessageReceivedHandler> handlers = ChannelHandlers[channel];
+
+            if(!handlers.Contains(callback))
+            {
+                handlers.Add(callback);
+            }
         }
 
         #region Events

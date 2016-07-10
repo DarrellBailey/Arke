@@ -11,6 +11,8 @@ namespace Arke
 
         protected ArkeTcpServer Server;
 
+        protected Dictionary<int, List<ConnectionMessageReceivedHandler>> ChannelHandlers = new Dictionary<int, List<ConnectionMessageReceivedHandler>>();
+
         public Guid Id { get; private set; }
 
         /// <summary>
@@ -43,9 +45,38 @@ namespace Arke
             await Client.SendAsync(message);
         }
 
+        /// <summary>
+        /// Register a callback for a specific channel. You can register more than one callback on a single channel.
+        /// </summary>
+        /// <param name="channel">The channel to register to.</param>
+        /// <param name="callback">The callback to register.</param>
+        public void RegisterChannelCallback(int channel, ConnectionMessageReceivedHandler callback)
+        {
+            if (!ChannelHandlers.ContainsKey(channel))
+            {
+                ChannelHandlers.Add(channel, new List<ConnectionMessageReceivedHandler>());
+            }
+
+            List<ConnectionMessageReceivedHandler> handlers = ChannelHandlers[channel];
+
+            if (!handlers.Contains(callback))
+            {
+                handlers.Add(callback);
+            }
+        }
+
         protected void OnMessageReceived(ArkeMessage message)
         {
             MessageReceived?.Invoke(message, this);
+
+            List<ConnectionMessageReceivedHandler> handlers;
+
+            bool hasHandlers = ChannelHandlers.TryGetValue(message.Channel, out handlers);
+            
+            if(hasHandlers)
+            {
+                handlers.ForEach(callback => callback(message, this));
+            }
         }
 
         #region Events

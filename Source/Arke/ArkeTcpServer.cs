@@ -14,6 +14,8 @@ namespace Arke
 
         protected Dictionary<Guid, ArkeTcpServerConnection> InternalConnections = new Dictionary<Guid, ArkeTcpServerConnection>();
 
+        protected Dictionary<int, List<ServerMessageReceivedHandler>> ChannelHandlers = new Dictionary<int, List<ServerMessageReceivedHandler>>();
+
         /// <summary>
         /// The servers endpoint.
         /// </summary>
@@ -110,6 +112,26 @@ namespace Arke
             }
         }
 
+        /// <summary>
+        /// Register a callback for a specific channel. You can register more than one callback on a single channel.
+        /// </summary>
+        /// <param name="channel">The channel to register to.</param>
+        /// <param name="callback">The callback to register.</param>
+        public void RegisterChannelCallback(int channel, ServerMessageReceivedHandler callback)
+        {
+            if (!ChannelHandlers.ContainsKey(channel))
+            {
+                ChannelHandlers.Add(channel, new List<ServerMessageReceivedHandler>());
+            }
+
+            List<ServerMessageReceivedHandler> handlers = ChannelHandlers[channel];
+
+            if (!handlers.Contains(callback))
+            {
+                handlers.Add(callback);
+            }
+        }
+
         internal void OnConnectionReceived(ArkeTcpServerConnection connection)
         {
             ConnectionReceived?.Invoke(connection);
@@ -118,6 +140,15 @@ namespace Arke
         internal void OnMessageReceived(ArkeMessage message, ArkeTcpServerConnection connection)
         {
             MessageReceived?.Invoke(message, connection);
+
+            List<ServerMessageReceivedHandler> handlers;
+
+            bool hasHandlers = ChannelHandlers.TryGetValue(message.Channel, out handlers);
+
+            if (hasHandlers)
+            {
+                handlers.ForEach(callback => callback(message, connection));
+            }
         }
 
         #region Events
