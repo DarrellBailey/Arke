@@ -2,6 +2,9 @@
 
 namespace Arke
 {
+    /// <summary>
+    /// Arke Message Object. Used to construct messages between Arke endpoints.
+    /// </summary>
     public class ArkeMessage
     {
         internal byte[] Content { get; set; }

@@ -8,6 +8,9 @@ using System.Collections.Concurrent;
 
 namespace Arke
 {
+    /// <summary>
+    /// Arke Tcp Server
+    /// </summary>
     public class ArkeTcpServer
     {
         private TcpListener TcpListener;
@@ -170,8 +173,17 @@ namespace Arke
 
     #region Delegates
 
+    /// <summary>
+    /// The connection received delgate for the ArkeTcpServer connection received event.
+    /// </summary>
+    /// <param name="connection">The connection that was recieved.</param>
     public delegate void ServerConnectionReceivedHandler(ArkeTcpServerConnection connection);
 
+    /// <summary>
+    /// The message received delegate for the ArkeTcpServer message received event.
+    /// </summary>
+    /// <param name="message">The message that was received.</param>
+    /// <param name="connection">The connection that the message was received on.</param>
     public delegate void ServerMessageReceivedHandler(ArkeMessage message, ArkeTcpServerConnection connection);
 
     #endregion

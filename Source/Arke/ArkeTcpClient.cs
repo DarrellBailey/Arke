@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 
 namespace Arke
 {
+    /// <summary>
+    /// Arke Tcp Client
+    /// </summary>
     public class ArkeTcpClient
     {
         const int defaultBufferSize = 8192;
@@ -22,8 +25,6 @@ namespace Arke
         private CancellationTokenSource listenCts = new CancellationTokenSource();
 
         private Dictionary<int, List<ClientMessageReceivedHandler>> channelHandlers = new Dictionary<int, List<ClientMessageReceivedHandler>>();
-
-        private Action<byte[]> processMessage;
 
         /// <summary>
         /// The underlying Tcp Client object for this Arke Client.
@@ -256,10 +257,17 @@ namespace Arke
 
         #region Events
 
+        /// <summary>
+        /// Triggered when this client receives a message.
+        /// </summary>
         public event ClientMessageReceivedHandler MessageReceived;
 
         #endregion
     }
 
+    /// <summary>
+    /// Event handler delegate for the ArkeTcpClient MessageReceived event.
+    /// </summary>
+    /// <param name="message">The message that was received.</param>
     public delegate void ClientMessageReceivedHandler(ArkeMessage message);
 }

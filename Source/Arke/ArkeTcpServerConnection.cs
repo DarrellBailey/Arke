@@ -96,6 +96,9 @@ namespace Arke
 
         #region Events
 
+        /// <summary>
+        /// Triggered when this connection receives a message.
+        /// </summary>
         public event ConnectionMessageReceivedHandler MessageReceived;
 
         #endregion
@@ -103,6 +106,11 @@ namespace Arke
 
     #region Delegates
 
+    /// <summary>
+    /// The message received delegate for an ArkeTcpConnection MessageReceived event.
+    /// </summary>
+    /// <param name="message">The message that was received.</param>
+    /// <param name="connection">The connection that received the message.</param>
     public delegate void ConnectionMessageReceivedHandler(ArkeMessage message, ArkeTcpServerConnection connection);
 
     #endregion
