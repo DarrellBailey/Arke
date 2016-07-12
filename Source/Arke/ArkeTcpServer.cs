@@ -10,11 +10,11 @@ namespace Arke
 {
     public class ArkeTcpServer
     {
-        protected TcpListener TcpListener;
+        private TcpListener TcpListener;
 
-        protected Dictionary<Guid, ArkeTcpServerConnection> InternalConnections = new Dictionary<Guid, ArkeTcpServerConnection>();
+        private Dictionary<Guid, ArkeTcpServerConnection> InternalConnections = new Dictionary<Guid, ArkeTcpServerConnection>();
 
-        protected Dictionary<int, List<ServerMessageReceivedHandler>> ChannelHandlers = new Dictionary<int, List<ServerMessageReceivedHandler>>();
+        private Dictionary<int, List<ServerMessageReceivedHandler>> ChannelHandlers = new Dictionary<int, List<ServerMessageReceivedHandler>>();
 
         /// <summary>
         /// The servers endpoint.
@@ -90,7 +90,7 @@ namespace Arke
             }
         }
 
-        protected async Task AcceptSocketLoop()
+        private async Task AcceptSocketLoop()
         {
             Listening = true;
 

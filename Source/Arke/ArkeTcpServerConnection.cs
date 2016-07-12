@@ -5,14 +5,20 @@ using System.Threading.Tasks;
 
 namespace Arke
 {
+    /// <summary>
+    /// An instance of a single connection between an Arke Client and Arke Server
+    /// </summary>
     public class ArkeTcpServerConnection
     {
         private ArkeTcpServerConnection() { }
 
-        protected ArkeTcpServer Server;
+        private ArkeTcpServer _server;
 
-        protected Dictionary<int, List<ConnectionMessageReceivedHandler>> ChannelHandlers = new Dictionary<int, List<ConnectionMessageReceivedHandler>>();
+        private Dictionary<int, List<ConnectionMessageReceivedHandler>> _channelHandlers = new Dictionary<int, List<ConnectionMessageReceivedHandler>>();
 
+        /// <summary>
+        /// The generated Id for this connection.
+        /// </summary>
         public Guid Id { get; private set; }
 
         /// <summary>
@@ -26,7 +32,7 @@ namespace Arke
 
             Client = client;
 
-            Server = server;
+            _server = server;
 
             client.MessageReceived += OnMessageReceived;
         }
@@ -61,12 +67,12 @@ namespace Arke
         /// <param name="callback">The callback to register.</param>
         public void RegisterChannelCallback(int channel, ConnectionMessageReceivedHandler callback)
         {
-            if (!ChannelHandlers.ContainsKey(channel))
+            if (!_channelHandlers.ContainsKey(channel))
             {
-                ChannelHandlers.Add(channel, new List<ConnectionMessageReceivedHandler>());
+                _channelHandlers.Add(channel, new List<ConnectionMessageReceivedHandler>());
             }
 
-            List<ConnectionMessageReceivedHandler> handlers = ChannelHandlers[channel];
+            List<ConnectionMessageReceivedHandler> handlers = _channelHandlers[channel];
 
             if (!handlers.Contains(callback))
             {
@@ -74,11 +80,11 @@ namespace Arke
             }
         }
 
-        protected void OnMessageReceived(ArkeMessage message)
+        private void OnMessageReceived(ArkeMessage message)
         {
             List<ConnectionMessageReceivedHandler> handlers;
 
-            bool hasHandlers = ChannelHandlers.TryGetValue(message.Channel, out handlers);
+            bool hasHandlers = _channelHandlers.TryGetValue(message.Channel, out handlers);
 
             if (hasHandlers)
             {

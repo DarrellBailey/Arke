@@ -13,22 +13,22 @@ namespace Arke
     {
         const int defaultBufferSize = 8192;
 
-        protected byte[] readBuffer = new byte[defaultBufferSize];
+        private byte[] readBuffer = new byte[defaultBufferSize];
 
-        protected List<byte> messageBuffer = new List<byte>(defaultBufferSize);
+        private List<byte> messageBuffer = new List<byte>(defaultBufferSize);
 
-        protected Task listenTask = null;
+        private Task listenTask = null;
 
-        protected CancellationTokenSource listenCts = new CancellationTokenSource();
+        private CancellationTokenSource listenCts = new CancellationTokenSource();
 
-        protected Dictionary<int, List<ClientMessageReceivedHandler>> channelHandlers = new Dictionary<int, List<ClientMessageReceivedHandler>>();
+        private Dictionary<int, List<ClientMessageReceivedHandler>> channelHandlers = new Dictionary<int, List<ClientMessageReceivedHandler>>();
 
-        protected Action<byte[]> processMessage;
+        private Action<byte[]> processMessage;
 
         /// <summary>
         /// The underlying Tcp Client object for this Arke Client.
         /// </summary>
-        public TcpClient TcpClient { get; protected set; }
+        public TcpClient TcpClient { get; private set; }
 
         /// <summary>
         /// Whether or not the client is connected.
@@ -105,7 +105,7 @@ namespace Arke
             listenTask = Task.Run(Listen, listenCts.Token);
         }
 
-        protected async Task Listen()
+        private async Task Listen()
         {
             //get network stream
             NetworkStream stream = TcpClient.GetStream();
@@ -121,7 +121,7 @@ namespace Arke
             }
         }
 
-        protected void ProcessMessageBuffer()
+        private void ProcessMessageBuffer()
         {
             //it is possible to have more than one message in the buffer, so process all available messages
             while (messageBuffer.Count >= 4)
@@ -145,7 +145,7 @@ namespace Arke
             }
         }
 
-        protected void ProcessMessage(object obj)
+        private void ProcessMessage(object obj)
         {
             //cast obj to byte array like it should be
             byte[] message = (byte[])obj;
@@ -166,7 +166,7 @@ namespace Arke
             OnMessageReceived(messageObject);
         }
 
-        protected void OnMessageReceived(ArkeMessage message)
+        private void OnMessageReceived(ArkeMessage message)
         {
             List<ClientMessageReceivedHandler> handlers;
 
@@ -206,7 +206,7 @@ namespace Arke
             await TcpClient.GetStream().WriteAsync(transferBytes, 0, transferBytes.Length);
         }
 
-        protected byte[] PrepareMessageForSend(ArkeMessage message)
+        private byte[] PrepareMessageForSend(ArkeMessage message)
         {
             //get the message channel as an array of bytes
             byte[] channel = BitConverter.GetBytes(message.Channel);
