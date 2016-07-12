@@ -47,7 +47,7 @@ namespace ArkeTests.Client
 
         public static void CanRegisterMessageReceived()
         {
-            client.MessageReceived += message =>
+            client.MessageReceived += (message, client) =>
             {
                 Console.WriteLine(message.GetContentAsString());
             };
@@ -55,9 +55,9 @@ namespace ArkeTests.Client
 
         public static void CanRegisterCallbacks()
         {
-            client.RegisterChannelCallback(1, x =>
+            client.RegisterChannelCallback(1, (message, client) =>
             {
-                Console.WriteLine(x.GetContentAsString());
+                Console.WriteLine(message.GetContentAsString());
             });
         }
     }

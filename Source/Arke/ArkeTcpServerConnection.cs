@@ -80,7 +80,7 @@ namespace Arke
             }
         }
 
-        private void OnMessageReceived(ArkeMessage message)
+        private void OnMessageReceived(ArkeMessage message, ArkeTcpClient client)
         {
             List<ConnectionMessageReceivedHandler> handlers;
 

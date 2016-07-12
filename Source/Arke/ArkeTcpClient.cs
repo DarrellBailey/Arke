@@ -12,7 +12,7 @@ namespace Arke
     /// <summary>
     /// Arke Tcp Client
     /// </summary>
-    public class ArkeTcpClient
+    public class ArkeTcpClient : IDisposable
     {
         const int defaultBufferSize = 8192;
 
@@ -175,10 +175,10 @@ namespace Arke
 
             if (hasHandlers)
             {
-                handlers.ForEach(callback => callback(message));
+                handlers.ForEach(callback => callback(message, this));
             }
 
-            MessageReceived?.Invoke(message);
+            MessageReceived?.Invoke(message, this);
         }
 
         /// <summary>
@@ -263,11 +263,51 @@ namespace Arke
         public event ClientMessageReceivedHandler MessageReceived;
 
         #endregion
+
+        #region IDisposable
+
+        private bool disposed = false; // To detect redundant calls
+
+        /// <summary>
+        /// Clean up the listen thread and tcp client.
+        /// </summary>
+        /// <param name="disposing"></param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (disposing)
+                {
+                    TcpClient.Dispose();
+                    listenCts.Cancel();
+                    listenCts.Dispose();
+                }               
+
+                disposed = true;
+            }
+        }
+
+        /// <summary>
+        /// Disposes the ArkeTcpClient
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        #endregion
     }
 
     /// <summary>
     /// Event handler delegate for the ArkeTcpClient MessageReceived event.
     /// </summary>
     /// <param name="message">The message that was received.</param>
-    public delegate void ClientMessageReceivedHandler(ArkeMessage message);
+    /// <param name="client">The client the message was received on.</param>
+    public delegate void ClientMessageReceivedHandler(ArkeMessage message, ArkeTcpClient client);
+
+    /// <summary>
+    /// Event handler delegate for the ArkeTcpClient Disconnected event.
+    /// </summary>
+    /// <param name="client">The client that was disconnected.</param>
+    public delegate void ClientDisconnectedHandler(ArkeTcpClient client);
 }
