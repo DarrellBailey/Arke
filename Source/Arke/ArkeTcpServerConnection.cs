@@ -40,9 +40,18 @@ namespace Arke
         /// Send A Message.
         /// </summary>
         /// <param name="message">The message to send.</param>
-        public async Task Send(ArkeMessage message)
+        public async Task SendAsync(ArkeMessage message)
         {
             await Client.SendAsync(message);
+        }
+
+        /// <summary>
+        /// Send A Message.
+        /// </summary>
+        /// <param name="message">The message to send.</param>
+        public void Send(ArkeMessage message)
+        {
+            Client.SendAsync(message).Wait();
         }
 
         /// <summary>
@@ -67,16 +76,16 @@ namespace Arke
 
         protected void OnMessageReceived(ArkeMessage message)
         {
-            MessageReceived?.Invoke(message, this);
-
             List<ConnectionMessageReceivedHandler> handlers;
 
             bool hasHandlers = ChannelHandlers.TryGetValue(message.Channel, out handlers);
-            
-            if(hasHandlers)
+
+            if (hasHandlers)
             {
                 handlers.ForEach(callback => callback(message, this));
             }
+
+            MessageReceived?.Invoke(message, this);
         }
 
         #region Events

@@ -74,8 +74,6 @@ namespace Arke
                 TcpListener.Start();
 
                 Task.Run(AcceptSocketLoop);
-
-                Listening = true;
             }
         }
 
@@ -94,6 +92,8 @@ namespace Arke
 
         protected async Task AcceptSocketLoop()
         {
+            Listening = true;
+
             while (Listening)
             {
                 TcpClient tcpClient = await TcpListener.AcceptTcpClientAsync();
@@ -106,10 +106,12 @@ namespace Arke
 
                 connection.MessageReceived += OnMessageReceived;
 
-                OnConnectionReceived(connection);
+                connection.StartListening();
 
-                connection.StartListening();                
+                OnConnectionReceived(connection);
             }
+
+            Listening = false;
         }
 
         /// <summary>
@@ -139,8 +141,6 @@ namespace Arke
 
         internal void OnMessageReceived(ArkeMessage message, ArkeTcpServerConnection connection)
         {
-            MessageReceived?.Invoke(message, connection);
-
             List<ServerMessageReceivedHandler> handlers;
 
             bool hasHandlers = ChannelHandlers.TryGetValue(message.Channel, out handlers);
@@ -149,6 +149,8 @@ namespace Arke
             {
                 handlers.ForEach(callback => callback(message, connection));
             }
+
+            MessageReceived?.Invoke(message, connection);
         }
 
         #region Events

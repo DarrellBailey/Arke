@@ -8,29 +8,56 @@ namespace ArkeTests.Server
 {
     public class Program
     {
+        static ArkeTcpServer server = new ArkeTcpServer(4444);
+
         public static void Main(string[] args)
         {
-            ArkeTcpServer server = new ArkeTcpServer(4444);
+            CanRegisterConnectionEvent();
 
-            server.ConnectionReceived += Server_ConnectionReceived;
+            CanRegisterMessageReceivedEvent();
 
-            server.MessageReceived += Server_MessageReceived;
+            CanRegisterChannelMessageReceivedEvent();
 
-            server.StartListening();
-
-            Console.WriteLine("Arke Listening On Port 4444");
+            CanStartListening();
 
             Console.ReadLine();
         }
 
-        private static void Server_MessageReceived(ArkeMessage message, ArkeTcpServerConnection connection)
+        public static void CanStartListening()
         {
-            Console.WriteLine("Message '" + message.GetContentAsString() + "' With Content Type: " + message.ContentType +" Received From: " + connection.Id);
+            server.StartListening();
+
+            Console.WriteLine("Arke Listening On Port 4444");
         }
 
-        private static void Server_ConnectionReceived(ArkeTcpServerConnection connection)
+        public static void CanRegisterConnectionEvent()
         {
-            Console.WriteLine("Connection Established For Client With Id: " + connection.Id);
+            server.ConnectionReceived += connection =>
+            {
+                Console.WriteLine("Connection Established For Client With Id: " + connection.Id);
+
+                connection.Send(new ArkeMessage("Server: Connection Established"));
+            };
+        }
+
+        public static void CanRegisterMessageReceivedEvent()
+        {
+            server.MessageReceived += (message, connection) =>
+            {
+                Console.WriteLine("Message '" + message.GetContentAsString() + "' With Content Type: " + message.ContentType + " Received From: " + connection.Id);
+
+                connection.Send(new ArkeMessage("Server: Message Received By Generic Handler"));
+            };
+        }
+
+        public static void CanRegisterChannelMessageReceivedEvent()
+        {
+            server.RegisterChannelCallback(1, (message, connection) =>
+            {
+                Console.WriteLine(" Channel Message '" + message.GetContentAsString() + "' With Content Type: " + message.ContentType + " Received From: " + connection.Id);
+
+                connection.Send(new ArkeMessage("Server: Message Received By Channel 1 Handler"));
+            });
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -20,7 +21,9 @@ namespace Arke
 
         protected CancellationTokenSource listenCts = new CancellationTokenSource();
 
-        protected Dictionary<int, List<ClientMessageReceivedHandler>> ChannelHandlers = new Dictionary<int, List<ClientMessageReceivedHandler>>();
+        protected Dictionary<int, List<ClientMessageReceivedHandler>> channelHandlers = new Dictionary<int, List<ClientMessageReceivedHandler>>();
+
+        protected Action<byte[]> processMessage;
 
         /// <summary>
         /// The underlying Tcp Client object for this Arke Client.
@@ -104,10 +107,12 @@ namespace Arke
 
         protected async Task Listen()
         {
+            //get network stream
+            NetworkStream stream = TcpClient.GetStream();
+
+            //enter listen loop
             while (Connected && !listenCts.IsCancellationRequested)
             {
-                NetworkStream stream = TcpClient.GetStream();
-
                 int bytesRead = await stream.ReadAsync(readBuffer, 0, readBuffer.Length);
 
                 messageBuffer.AddRange(readBuffer.Take(bytesRead));
@@ -118,24 +123,33 @@ namespace Arke
 
         protected void ProcessMessageBuffer()
         {
-            //the first 4 bytes of the message are the message length. This value includes the 4 bytes for the message length itself.
-            int messageLength = BitConverter.ToInt32(messageBuffer.Take(4).ToArray(), 0);
+            //it is possible to have more than one message in the buffer, so process all available messages
+            while (messageBuffer.Count >= 4)
+            {
+                //the first 4 bytes of the message are the message length. This value includes the 4 bytes for the message length itself.
+                int messageLength = BitConverter.ToInt32(messageBuffer.Take(4).ToArray(), 0);
 
-            //if the message buffer does not contain the entire message, move on.
-            if(messageBuffer.Count() < messageLength) return;
+                //if the message buffer does not contain the entire message, move on.
+                if (messageBuffer.Count() < messageLength) break;
 
-            //get the message data from the buffer
-            byte[] messageBytes = messageBuffer.Skip(4).Take(messageLength - 4).ToArray();
+                //get the message data from the buffer
+                byte[] messageBytes = messageBuffer.Skip(4).Take(messageLength - 4).ToArray();
 
-            //clear the message out of the buffer
-            messageBuffer.RemoveRange(0, messageLength);
+                //clear the message out of the buffer
+                messageBuffer.RemoveRange(0, messageLength);
 
-            //Process the message
-            ProcessMessage(messageBytes);
+                //Process the message
+                Task processMessage = new Task(new Action<object>(ProcessMessage), messageBytes);
+
+                processMessage.Start();
+            }
         }
 
-        protected void ProcessMessage(byte[] message)
+        protected void ProcessMessage(object obj)
         {
+            //cast obj to byte array like it should be
+            byte[] message = (byte[])obj;
+
             //the first 4 bytes of the message are the channel
             int channel = BitConverter.ToInt32(message, 0);
 
@@ -154,16 +168,16 @@ namespace Arke
 
         protected void OnMessageReceived(ArkeMessage message)
         {
-            MessageReceived?.Invoke(message);
-
             List<ClientMessageReceivedHandler> handlers;
 
-            bool hasHandlers = ChannelHandlers.TryGetValue(message.Channel, out handlers);
+            bool hasHandlers = channelHandlers.TryGetValue(message.Channel, out handlers);
 
             if (hasHandlers)
             {
                 handlers.ForEach(callback => callback(message));
             }
+
+            MessageReceived?.Invoke(message);
         }
 
         /// <summary>
@@ -172,7 +186,11 @@ namespace Arke
         /// <param name="message">The message to send.</param>
         public void Send(ArkeMessage message)
         {
-            SendAsync(message).Wait();
+            if (!Connected) throw new ArkeException("Attempt to send data on a disconnected client is not allowed.");
+
+            byte[] transferBytes = PrepareMessageForSend(message);
+
+            TcpClient.GetStream().Write(transferBytes, 0, transferBytes.Length);
         }
 
         /// <summary>
@@ -183,6 +201,13 @@ namespace Arke
         {
             if (!Connected) throw new ArkeException("Attempt to send data on a disconnected client is not allowed.");
 
+            byte[] transferBytes = PrepareMessageForSend(message);
+
+            await TcpClient.GetStream().WriteAsync(transferBytes, 0, transferBytes.Length);
+        }
+
+        protected byte[] PrepareMessageForSend(ArkeMessage message)
+        {
             //get the message channel as an array of bytes
             byte[] channel = BitConverter.GetBytes(message.Channel);
 
@@ -206,7 +231,7 @@ namespace Arke
 
             Array.Copy(message.Content, 0, transferBytes, 9, message.Content.Length);
 
-            await TcpClient.GetStream().WriteAsync(transferBytes, 0, transferBytes.Length);
+            return transferBytes;
         }
 
         /// <summary>
@@ -216,14 +241,14 @@ namespace Arke
         /// <param name="callback">The callback to register.</param>
         public void RegisterChannelCallback(int channel, ClientMessageReceivedHandler callback)
         {
-            if (!ChannelHandlers.ContainsKey(channel))
+            if (!channelHandlers.ContainsKey(channel))
             {
-                ChannelHandlers.Add(channel, new List<ClientMessageReceivedHandler>());
+                channelHandlers.Add(channel, new List<ClientMessageReceivedHandler>());
             }
 
-            List<ClientMessageReceivedHandler> handlers = ChannelHandlers[channel];
+            List<ClientMessageReceivedHandler> handlers = channelHandlers[channel];
 
-            if(!handlers.Contains(callback))
+            if (!handlers.Contains(callback))
             {
                 handlers.Add(callback);
             }
