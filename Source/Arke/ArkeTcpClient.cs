@@ -154,11 +154,14 @@ namespace Arke
             //the first 4 bytes of the message are the channel
             int channel = BitConverter.ToInt32(message, 0);
 
-            //the message type is the 5th byte
-            ArkeContentType type = (ArkeContentType)message[4];
+            //the control code is the 5th byte
+            ArkeControlCode controlCode = (ArkeControlCode)message[4];
+
+            //the message type is the 6th byte
+            ArkeContentType type = (ArkeContentType)message[5];
 
             //the remaining bytes are the payload
-            byte[] payload = message.Skip(5).Take(message.Length - 5).ToArray();
+            byte[] payload = message.Skip(6).ToArray();
 
             //create the message object
             ArkeMessage messageObject = new ArkeMessage(payload, channel, type);
@@ -215,8 +218,10 @@ namespace Arke
             //get the message type as a byte
             byte type = (byte)message.ContentType;
 
-            //the message length - 4 bytes for length int, 5 bytes for channel and content type header, add payload length
-            int length = 4 + 5 + message.Content.Count();
+            byte controlCode = (byte)ArkeControlCode.Message;
+
+            //the message length - 4 bytes for length int, 5 bytes for control code, channel and content type header, add payload length
+            int length = 4 + 6 + message.Content.Count();
 
             //the length in bytes
             byte[] lengthBytes = BitConverter.GetBytes(length);
@@ -228,9 +233,11 @@ namespace Arke
 
             Array.Copy(channel, 0, transferBytes, 4, 4);
 
-            transferBytes[8] = type;
+            transferBytes[8] = controlCode;
 
-            Array.Copy(message.Content, 0, transferBytes, 9, message.Content.Length);
+            transferBytes[9] = type;
+
+            Array.Copy(message.Content, 0, transferBytes, 10, message.Content.Length);
 
             return transferBytes;
         }
