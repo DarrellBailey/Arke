@@ -227,16 +227,22 @@ namespace Arke
             //the byte data to transfer
             byte[] transferBytes = new byte[length];
 
+            //add message length
             Array.Copy(lengthBytes, 0, transferBytes, 0, 4);
 
+            //add message channel
             Array.Copy(channel, 0, transferBytes, 4, 4);
 
+            //add control code
             transferBytes[8] = (byte)controlCode;
 
+            //add content type
             transferBytes[9] = (byte)message.ContentType;
 
+            //add message id guid
             Array.Copy(messageId.ToByteArray(), 0, transferBytes, 10, 16);
 
+            //add message content
             Array.Copy(message.Content, 0, transferBytes, 26, message.Content.Length);
 
             return transferBytes;
