@@ -14,5 +14,7 @@ namespace Arke
         UnsubscribeTopic = 2,
 
         PublishTopic = 3,
+
+        RequestReply = 4,
     }
 }
