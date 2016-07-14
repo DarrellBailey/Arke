@@ -160,8 +160,11 @@ namespace Arke
             //the message type is the 6th byte
             ArkeContentType type = (ArkeContentType)message[5];
 
+            //the message id is the next 16 bytes
+            Guid messageId = new Guid(message.Skip(6).Take(16).ToArray());
+
             //the remaining bytes are the payload
-            byte[] payload = message.Skip(6).ToArray();
+            byte[] payload = message.Skip(22).ToArray();
 
             //create the message object
             ArkeMessage messageObject = new ArkeMessage(payload, channel, type);
@@ -210,11 +213,13 @@ namespace Arke
 
         private byte[] PrepareMessageForSend(ArkeMessage message, ArkeControlCode controlCode)
         {
+            Guid messageId = Guid.NewGuid();
+
             //get the message channel as an array of bytes
             byte[] channel = BitConverter.GetBytes(message.Channel);
 
-            //the message length - 4 bytes for length int, 5 bytes for control code, channel and content type header, add payload length
-            int length = 4 + 6 + message.Content.Count();
+            //the message length - 4 bytes for length int, 22 bytes for control code, channel, guid, and content type header, add payload length
+            int length = 4 + 22 + message.Content.Count();
 
             //the length in bytes
             byte[] lengthBytes = BitConverter.GetBytes(length);
@@ -230,7 +235,9 @@ namespace Arke
 
             transferBytes[9] = (byte)message.ContentType;
 
-            Array.Copy(message.Content, 0, transferBytes, 10, message.Content.Length);
+            Array.Copy(messageId.ToByteArray(), 0, transferBytes, 10, 16);
+
+            Array.Copy(message.Content, 0, transferBytes, 26, message.Content.Length);
 
             return transferBytes;
         }
