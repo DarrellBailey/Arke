@@ -192,9 +192,7 @@ namespace Arke
         {
             if (!Connected) throw new ArkeException("Attempt to send data on a disconnected client is not allowed.");
 
-            byte[] transferBytes = PrepareMessageForSend(message);
-
-            TcpClient.GetStream().Write(transferBytes, 0, transferBytes.Length);
+            SendAsync(message).Wait();
         }
 
         /// <summary>
@@ -205,20 +203,15 @@ namespace Arke
         {
             if (!Connected) throw new ArkeException("Attempt to send data on a disconnected client is not allowed.");
 
-            byte[] transferBytes = PrepareMessageForSend(message);
+            byte[] transferBytes = PrepareMessageForSend(message, ArkeControlCode.Message);
 
             await TcpClient.GetStream().WriteAsync(transferBytes, 0, transferBytes.Length);
         }
 
-        private byte[] PrepareMessageForSend(ArkeMessage message)
+        private byte[] PrepareMessageForSend(ArkeMessage message, ArkeControlCode controlCode)
         {
             //get the message channel as an array of bytes
             byte[] channel = BitConverter.GetBytes(message.Channel);
-
-            //get the message type as a byte
-            byte type = (byte)message.ContentType;
-
-            byte controlCode = (byte)ArkeControlCode.Message;
 
             //the message length - 4 bytes for length int, 5 bytes for control code, channel and content type header, add payload length
             int length = 4 + 6 + message.Content.Count();
@@ -233,9 +226,9 @@ namespace Arke
 
             Array.Copy(channel, 0, transferBytes, 4, 4);
 
-            transferBytes[8] = controlCode;
+            transferBytes[8] = (byte)controlCode;
 
-            transferBytes[9] = type;
+            transferBytes[9] = (byte)message.ContentType;
 
             Array.Copy(message.Content, 0, transferBytes, 10, message.Content.Length);
 
@@ -247,8 +240,7 @@ namespace Arke
         /// </summary>
         /// <param name="channel">The channel to register to.</param>
         /// <param name="callback">The callback to register.</param>
-        public void RegisterChannelCallback(int channel, ClientMessageReceivedHandler callback)
-        {
+        public void RegisterChannelCallback(int channel, ClientMessageReceivedHandler callback)        {
             if (!channelHandlers.ContainsKey(channel))
             {
                 channelHandlers.Add(channel, new List<ClientMessageReceivedHandler>());
