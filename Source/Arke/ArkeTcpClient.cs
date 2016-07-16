@@ -26,6 +26,8 @@ namespace Arke
 
         private Dictionary<int, List<ClientMessageReceivedHandler>> channelHandlers = new Dictionary<int, List<ClientMessageReceivedHandler>>();
 
+        private Dictionary<int, List<ClientMessageReceivedHandler>> requestReplyChannelHandlers = new Dictionary<int, List<ClientMessageReceivedHandler>>();
+
         /// <summary>
         /// The underlying Tcp Client object for this Arke Client.
         /// </summary>
@@ -218,7 +220,7 @@ namespace Arke
             //get the message channel as an array of bytes
             byte[] channel = BitConverter.GetBytes(message.Channel);
 
-            //the message length - 4 bytes for length int, 22 bytes for control code, channel, guid, and content type header, add payload length
+            //the message length - 4 bytes for length int, 22 bytes for channel, message id guid, control code, and content type header, add payload length
             int length = 4 + 22 + message.Content.Count();
 
             //the length in bytes

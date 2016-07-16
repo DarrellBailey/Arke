@@ -15,6 +15,8 @@ namespace Arke
 
         PublishTopic = 3,
 
-        RequestReply = 4,
+        Request = 4,
+
+        Reply = 5
     }
 }
