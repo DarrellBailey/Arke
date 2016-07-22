@@ -26,7 +26,7 @@ namespace Arke
 
         private Dictionary<int, List<ClientMessageReceivedHandler>> channelHandlers = new Dictionary<int, List<ClientMessageReceivedHandler>>();
 
-        private Dictionary<int, List<ClientMessageReceivedHandler>> requestReplyChannelHandlers = new Dictionary<int, List<ClientMessageReceivedHandler>>();
+        private Dictionary<int, List<ClientRequestReplyMessageReceivedHandler>> requestReplyChannelHandlers = new Dictionary<int, List<ClientRequestReplyMessageReceivedHandler>>();
 
         /// <summary>
         /// The underlying Tcp Client object for this Arke Client.
@@ -251,10 +251,11 @@ namespace Arke
         }
 
         /// <summary>
-        /// Register a callback for a specific channel. You can register more than one callback on a single channel.
+        /// Register a callback for a specific channel.
         /// </summary>
         /// <param name="channel">The channel to register to.</param>
         /// <param name="callback">The callback to register.</param>
+        /// <remarks>You can register more than one callback on a single channel.</remarks>
         public void RegisterChannelCallback(int channel, ClientMessageReceivedHandler callback)        {
             if (!channelHandlers.ContainsKey(channel))
             {
@@ -262,6 +263,27 @@ namespace Arke
             }
 
             List<ClientMessageReceivedHandler> handlers = channelHandlers[channel];
+
+            if (!handlers.Contains(callback))
+            {
+                handlers.Add(callback);
+            }
+        }
+
+        /// <summary>
+        /// Register a request reply callback for a specific channel.
+        /// </summary>
+        /// <param name="channel">The channel to register to.</param>
+        /// <param name="callback">The callback to register.</param>
+        /// <remarks> Only one callback can be registered at a time. If more that one regestration is attempted, the previous registration will be overwritten.</remarks>
+        public void RegisterRequestReplyChannelCallback(int channel, ClientRequestReplyMessageReceivedHandler callback)
+        {
+            if (!requestReplyChannelHandlers.ContainsKey(channel))
+            {
+                requestReplyChannelHandlers.Add(channel, new List<ClientRequestReplyMessageReceivedHandler>());
+            }
+
+            List<ClientRequestReplyMessageReceivedHandler> handlers = requestReplyChannelHandlers[channel];
 
             if (!handlers.Contains(callback))
             {
@@ -318,6 +340,14 @@ namespace Arke
     /// <param name="message">The message that was received.</param>
     /// <param name="client">The client the message was received on.</param>
     public delegate void ClientMessageReceivedHandler(ArkeMessage message, ArkeTcpClient client);
+
+    /// <summary>
+    /// Delegate for the Client Request Reply Message Reception
+    /// </summary>
+    /// <param name="message">The message that was received.</param>
+    /// <param name="client">The client the message was received on.</param>
+    /// <returns>The reply message.</returns>
+    public delegate ArkeMessage ClientRequestReplyMessageReceivedHandler(ArkeMessage message, ArkeTcpClient client);
 
     /// <summary>
     /// Event handler delegate for the ArkeTcpClient Disconnected event.
