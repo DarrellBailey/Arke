@@ -26,9 +26,11 @@ namespace Arke
 
         private Dictionary<int, List<ClientMessageReceivedHandler>> channelHandlers = new Dictionary<int, List<ClientMessageReceivedHandler>>();
 
-        private Dictionary<int, List<ClientRequestReplyMessageReceivedHandler>> requestReplyChannelHandlers = new Dictionary<int, List<ClientRequestReplyMessageReceivedHandler>>();
+        private Dictionary<int, ClientRequestReplyMessageReceivedHandler> requestReplyChannelHandlers = new Dictionary<int, ClientRequestReplyMessageReceivedHandler>();
 
         private ClientRequestReplyMessageReceivedHandler requestReplyMessageHandler = null;
+
+        private Dictionary<Guid, TaskCompletionSource<ArkeMessage>> requestAwaiters = new Dictionary<Guid, TaskCompletionSource<ArkeMessage>>();
 
         /// <summary>
         /// The underlying Tcp Client object for this Arke Client.
@@ -148,11 +150,8 @@ namespace Arke
             }
         }
 
-        private async Task InterpretIncomingMessage(byte[] obj)
+        private async Task InterpretIncomingMessage(byte[] message)
         {
-            //cast obj to byte array like it should be
-            byte[] message = (byte[])obj;
-
             //the first 4 bytes of the message are the channel
             int channel = BitConverter.ToInt32(message, 0);
 
@@ -182,19 +181,49 @@ namespace Arke
                 case ArkeControlCode.Request:
                     await ProcessRequestMessage(messageId, message);
                     break;
+                case ArkeControlCode.Reply:
+                    await ProcessReplyMessage(messageId, message);
+                    break;
                 default:
                     OnMessageReceived(message);
                     break;
             }
         }
 
+        private async Task ProcessReplyMessage(Guid messageId, ArkeMessage message)
+        {
+            TaskCompletionSource<ArkeMessage> awaiter = null;
+
+            requestAwaiters.TryGetValue(messageId, out awaiter);
+
+            if (awaiter == null) return; //Not really sure what we can do here... 
+
+            awaiter.SetResult(message);
+        }
+
         private async Task ProcessRequestMessage(Guid messageId, ArkeMessage message)
         {
             ArkeMessage reply = null;
 
+            //first we try for a specific channel handler
+            ClientRequestReplyMessageReceivedHandler handler = null;
+
+            requestReplyChannelHandlers.TryGetValue(message.Channel, out handler);
+
+            if(handler != null)
+            {
+                reply = await handler?.Invoke(message, this);
+            }
+
+            //Now we do the generic handler last
             reply = await requestReplyMessageHandler?.Invoke(message, this);
 
-            await SendAsync(reply);
+            reply.Channel = message.Channel;
+
+            //send the reply
+            byte[] transferBytes = PrepareMessageForSend(reply, ArkeControlCode.Reply, messageId);
+
+            await TcpClient.GetStream().WriteAsync(transferBytes, 0, transferBytes.Length);
         }
 
         private void OnMessageReceived(ArkeMessage message)
@@ -217,8 +246,6 @@ namespace Arke
         /// <param name="message">The message to send.</param>
         public void Send(ArkeMessage message)
         {
-            if (!Connected) throw new ArkeException("Attempt to send data on a disconnected client is not allowed.");
-
             SendAsync(message).Wait();
         }
 
@@ -230,15 +257,51 @@ namespace Arke
         {
             if (!Connected) throw new ArkeException("Attempt to send data on a disconnected client is not allowed.");
 
-            byte[] transferBytes = PrepareMessageForSend(message, ArkeControlCode.Message);
+            Guid messageId = Guid.NewGuid();
+
+            byte[] transferBytes = PrepareMessageForSend(message, ArkeControlCode.Message, messageId);
 
             await TcpClient.GetStream().WriteAsync(transferBytes, 0, transferBytes.Length);
         }
 
-        private byte[] PrepareMessageForSend(ArkeMessage message, ArkeControlCode controlCode)
+        /// <summary>
+        /// Send a request and wait for a reply from the server.
+        /// </summary>
+        /// <param name="message">The message to send.</param>
+        /// <returns>The reply from the server.</returns>
+        public ArkeMessage SendRequest(ArkeMessage message)
         {
+            return SendRequestAsync(message).Result;
+        }
+
+        /// <summary>
+        /// Send a request and wait for a reply from the server.
+        /// </summary>
+        /// <param name="message">The message to send.</param>
+        /// <returns>The reply from the server.</returns>
+        public async Task<ArkeMessage> SendRequestAsync(ArkeMessage message)
+        {
+            if (!Connected) throw new ArkeException("Attempt to send data on a disconnected client is not allowed.");
+
             Guid messageId = Guid.NewGuid();
 
+            byte[] transferBytes = PrepareMessageForSend(message, ArkeControlCode.Request, messageId);
+
+            TaskCompletionSource<ArkeMessage> awaiter = new TaskCompletionSource<ArkeMessage>();
+
+            requestAwaiters.Add(messageId, awaiter);
+
+            await TcpClient.GetStream().WriteAsync(transferBytes, 0, transferBytes.Length);
+
+            ArkeMessage reply = await awaiter.Task;
+
+            requestAwaiters.Remove(messageId);
+
+            return reply;
+        }
+
+        private byte[] PrepareMessageForSend(ArkeMessage message, ArkeControlCode controlCode, Guid messageId)
+        {
             //get the message channel as an array of bytes
             byte[] channel = BitConverter.GetBytes(message.Channel);
 
@@ -297,20 +360,15 @@ namespace Arke
         /// </summary>
         /// <param name="channel">The channel to register to.</param>
         /// <param name="callback">The callback to register.</param>
-        /// <remarks> Only one callback can be registered at a time. If more that one regestration is attempted, the previous registration will be overwritten.</remarks>
+        /// <remarks> Only one callback can be registered at a time. If more that one registration is attempted, the previous registration will be overwritten.</remarks>
         public void RegisterRequestReplyChannelCallback(int channel, ClientRequestReplyMessageReceivedHandler callback)
         {
-            if (!requestReplyChannelHandlers.ContainsKey(channel))
+            if (requestReplyChannelHandlers.ContainsKey(channel))
             {
-                requestReplyChannelHandlers.Add(channel, new List<ClientRequestReplyMessageReceivedHandler>());
+                requestReplyChannelHandlers.Remove(channel);
             }
 
-            List<ClientRequestReplyMessageReceivedHandler> handlers = requestReplyChannelHandlers[channel];
-
-            if (!handlers.Contains(callback))
-            {
-                handlers.Add(callback);
-            }
+            requestReplyChannelHandlers.Add(channel, callback);
         }
 
         #region Events
