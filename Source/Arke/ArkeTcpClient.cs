@@ -28,6 +28,8 @@ namespace Arke
 
         private Dictionary<int, List<ClientRequestReplyMessageReceivedHandler>> requestReplyChannelHandlers = new Dictionary<int, List<ClientRequestReplyMessageReceivedHandler>>();
 
+        private ClientRequestReplyMessageReceivedHandler requestReplyMessageHandler = null;
+
         /// <summary>
         /// The underlying Tcp Client object for this Arke Client.
         /// </summary>
@@ -120,11 +122,11 @@ namespace Arke
 
                 messageBuffer.AddRange(readBuffer.Take(bytesRead));
 
-                ProcessMessageBuffer();
+                ProcessIncomingMessageBuffer();
             }
         }
 
-        private void ProcessMessageBuffer()
+        private void ProcessIncomingMessageBuffer()
         {
             //it is possible to have more than one message in the buffer, so process all available messages
             while (messageBuffer.Count >= 4)
@@ -142,13 +144,11 @@ namespace Arke
                 messageBuffer.RemoveRange(0, messageLength);
 
                 //Process the message
-                Task processMessage = new Task(new Action<object>(ProcessMessage), messageBytes);
-
-                processMessage.Start();
+                Task.Run(() => InterpretIncomingMessage(messageBytes));
             }
         }
 
-        private void ProcessMessage(object obj)
+        private async Task InterpretIncomingMessage(byte[] obj)
         {
             //cast obj to byte array like it should be
             byte[] message = (byte[])obj;
@@ -171,8 +171,30 @@ namespace Arke
             //create the message object
             ArkeMessage messageObject = new ArkeMessage(payload, channel, type);
 
-            //trigger event
-            OnMessageReceived(messageObject);
+            //bubble up the message to the rest of the application
+            await ProcessIncomingMessage(messageId, controlCode, messageObject);
+        }
+
+        private async Task ProcessIncomingMessage(Guid messageId, ArkeControlCode controlCode, ArkeMessage message)
+        {
+            switch (controlCode)
+            {
+                case ArkeControlCode.Request:
+                    await ProcessRequestMessage(messageId, message);
+                    break;
+                default:
+                    OnMessageReceived(message);
+                    break;
+            }
+        }
+
+        private async Task ProcessRequestMessage(Guid messageId, ArkeMessage message)
+        {
+            ArkeMessage reply = null;
+
+            reply = await requestReplyMessageHandler?.Invoke(message, this);
+
+            await SendAsync(reply);
         }
 
         private void OnMessageReceived(ArkeMessage message)
@@ -347,7 +369,7 @@ namespace Arke
     /// <param name="message">The message that was received.</param>
     /// <param name="client">The client the message was received on.</param>
     /// <returns>The reply message.</returns>
-    public delegate ArkeMessage ClientRequestReplyMessageReceivedHandler(ArkeMessage message, ArkeTcpClient client);
+    public delegate Task<ArkeMessage> ClientRequestReplyMessageReceivedHandler(ArkeMessage message, ArkeTcpClient client);
 
     /// <summary>
     /// Event handler delegate for the ArkeTcpClient Disconnected event.
