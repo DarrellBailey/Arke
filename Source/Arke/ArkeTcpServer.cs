@@ -13,11 +13,11 @@ namespace Arke
     /// </summary>
     public class ArkeTcpServer
     {
-        private TcpListener TcpListener;
+        private TcpListener tcpListener;
 
-        private Dictionary<Guid, ArkeTcpServerConnection> InternalConnections = new Dictionary<Guid, ArkeTcpServerConnection>();
+        private Dictionary<Guid, ArkeTcpServerConnection> internalConnections = new Dictionary<Guid, ArkeTcpServerConnection>();
 
-        private Dictionary<int, List<ServerMessageReceivedHandler>> ChannelHandlers = new Dictionary<int, List<ServerMessageReceivedHandler>>();
+        private Dictionary<int, List<ServerMessageReceivedHandler>> channelHandlers = new Dictionary<int, List<ServerMessageReceivedHandler>>();
 
         private Dictionary<int, ServerRequestResponseMessageReceivedHandler> requestResponseChannelHandlers = new Dictionary<int, ServerRequestResponseMessageReceivedHandler>();
 
@@ -46,7 +46,7 @@ namespace Arke
         /// <summary>
         /// All currently active connections.
         /// </summary>
-        public ArkeTcpServerConnection[] Connections => InternalConnections.Values.ToArray();
+        public ArkeTcpServerConnection[] Connections => internalConnections.Values.ToArray();
 
         /// <summary>
         /// Create a new Tcp Server listening on all available network addresses at the given port.
@@ -56,7 +56,7 @@ namespace Arke
         {
             EndPoint = new IPEndPoint(IPAddress.Any, port);
 
-            TcpListener = new TcpListener(EndPoint);
+            tcpListener = new TcpListener(EndPoint);
         }
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace Arke
         {
             EndPoint = new IPEndPoint(address, port);
 
-            TcpListener = new TcpListener(EndPoint);
+            tcpListener = new TcpListener(EndPoint);
         }
 
         /// <summary>
@@ -78,7 +78,7 @@ namespace Arke
         {
             if (!Listening)
             {
-                TcpListener.Start();
+                tcpListener.Start();
 
                 Task.Run(AcceptSocketLoop);
             }
@@ -91,7 +91,7 @@ namespace Arke
         {
             if (Listening)
             {
-                TcpListener.Stop();
+                tcpListener.Stop();
 
                 Listening = false;
             }
@@ -103,13 +103,13 @@ namespace Arke
 
             while (Listening)
             {
-                TcpClient tcpClient = await TcpListener.AcceptTcpClientAsync();
+                TcpClient tcpClient = await tcpListener.AcceptTcpClientAsync();
 
                 ArkeTcpClient arkeClient = new ArkeTcpClient(tcpClient);
 
                 ArkeTcpServerConnection connection = new ArkeTcpServerConnection(Guid.NewGuid(), arkeClient, this);
 
-                InternalConnections.Add(connection.Id, connection);
+                internalConnections.Add(connection.Id, connection);
 
                 connection.MessageReceived += OnMessageReceived;
 
@@ -130,12 +130,12 @@ namespace Arke
         /// <param name="callback">The callback to register.</param>
         public void RegisterChannelCallback(int channel, ServerMessageReceivedHandler callback)
         {
-            if (!ChannelHandlers.ContainsKey(channel))
+            if (!channelHandlers.ContainsKey(channel))
             {
-                ChannelHandlers.Add(channel, new List<ServerMessageReceivedHandler>());
+                channelHandlers.Add(channel, new List<ServerMessageReceivedHandler>());
             }
 
-            List<ServerMessageReceivedHandler> handlers = ChannelHandlers[channel];
+            List<ServerMessageReceivedHandler> handlers = channelHandlers[channel];
 
             if (!handlers.Contains(callback))
             {
@@ -168,6 +168,71 @@ namespace Arke
             requestResponseMessageHandler = callback;
         }
 
+        /// <summary>
+        /// Removes all callbacks from all channels.
+        /// </summary>
+        public void ClearChannelCallbacks()
+        {
+            channelHandlers.Clear();
+        }
+
+        /// <summary>
+        /// Unregister all callbacks registered to a specific channel. If there are no callbacks registered on the channel, does nothing.
+        /// </summary>
+        /// <param name="channel">The channel to remove all callbacks from.</param>
+        public void UnregisterAllChannelCallbacks(int channel)
+        {
+            if (channelHandlers.ContainsKey(channel))
+            {
+                channelHandlers.Remove(channel);
+            }
+        }
+
+        /// <summary>
+        /// Removes the specific callback registered on the given channel. If the callback does not exist, does nothing. 
+        /// </summary>
+        /// <param name="channel">The channel to remove the callback from.</param>
+        /// <param name="callback">The callback to remove.</param>
+        public void UnregisterChannelCallback(int channel, ServerMessageReceivedHandler callback)
+        {
+            List<ServerMessageReceivedHandler> handlers;
+
+            bool hasHandlers = channelHandlers.TryGetValue(channel, out handlers);
+
+            if (hasHandlers)
+            {
+                if (handlers.Contains(callback))
+                {
+                    handlers.Remove(callback);
+                }
+
+                if (handlers.Count == 0)
+                {
+                    channelHandlers.Remove(channel);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Unregisters the request response callback associated with the given channel. Does nothing if the channel has no callback.
+        /// </summary>
+        /// <param name="channel">The channel the callback is registered on.</param>
+        public void UnregisterRequestResponseChannelCallback(int channel)
+        {
+            if (requestResponseChannelHandlers.ContainsKey(channel))
+            {
+                requestResponseChannelHandlers.Remove(channel);
+            }
+        }
+
+        /// <summary>
+        /// Unregisters the global request response callback.
+        /// </summary>
+        public void UnregisterRequestResponseCallback()
+        {
+            requestResponseMessageHandler = null;
+        }
+
         internal void OnConnectionReceived(ArkeTcpServerConnection connection)
         {
             ConnectionReceived?.Invoke(connection);
@@ -177,7 +242,7 @@ namespace Arke
         {
             List<ServerMessageReceivedHandler> handlers;
 
-            bool hasHandlers = ChannelHandlers.TryGetValue(message.Channel, out handlers);
+            bool hasHandlers = channelHandlers.TryGetValue(message.Channel, out handlers);
 
             if (hasHandlers)
             {

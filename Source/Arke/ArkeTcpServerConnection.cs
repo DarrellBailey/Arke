@@ -14,7 +14,7 @@ namespace Arke
 
         private ArkeTcpServer _server;
 
-        private Dictionary<int, List<ConnectionMessageReceivedHandler>> _channelHandlers = new Dictionary<int, List<ConnectionMessageReceivedHandler>>();
+        private Dictionary<int, List<ConnectionMessageReceivedHandler>> channelHandlers = new Dictionary<int, List<ConnectionMessageReceivedHandler>>();
 
         private Dictionary<int, ConnectionRequestResponseMessageReceivedHandler> requestResponseChannelHandlers = new Dictionary<int, ConnectionRequestResponseMessageReceivedHandler>();
 
@@ -93,12 +93,12 @@ namespace Arke
         /// <param name="callback">The callback to register.</param>
         public void RegisterChannelCallback(int channel, ConnectionMessageReceivedHandler callback)
         {
-            if (!_channelHandlers.ContainsKey(channel))
+            if (!channelHandlers.ContainsKey(channel))
             {
-                _channelHandlers.Add(channel, new List<ConnectionMessageReceivedHandler>());
+                channelHandlers.Add(channel, new List<ConnectionMessageReceivedHandler>());
             }
 
-            List<ConnectionMessageReceivedHandler> handlers = _channelHandlers[channel];
+            List<ConnectionMessageReceivedHandler> handlers = channelHandlers[channel];
 
             if (!handlers.Contains(callback))
             {
@@ -131,11 +131,76 @@ namespace Arke
             requestResponseMessageHandler = callback;
         }
 
+        /// <summary>
+        /// Removes all callbacks from all channels.
+        /// </summary>
+        public void ClearChannelCallbacks()
+        {
+            channelHandlers.Clear();
+        }
+
+        /// <summary>
+        /// Unregister all callbacks registered to a specific channel. If there are no callbacks registered on the channel, does nothing.
+        /// </summary>
+        /// <param name="channel">The channel to remove all callbacks from.</param>
+        public void UnregisterAllChannelCallbacks(int channel)
+        {
+            if (channelHandlers.ContainsKey(channel))
+            {
+                channelHandlers.Remove(channel);
+            }
+        }
+
+        /// <summary>
+        /// Removes the specific callback registered on the given channel. If the callback does not exist, does nothing. 
+        /// </summary>
+        /// <param name="channel">The channel to remove the callback from.</param>
+        /// <param name="callback">The callback to remove.</param>
+        public void UnregisterChannelCallback(int channel, ConnectionMessageReceivedHandler callback)
+        {
+            List<ConnectionMessageReceivedHandler> handlers;
+
+            bool hasHandlers = channelHandlers.TryGetValue(channel, out handlers);
+
+            if (hasHandlers)
+            {
+                if (handlers.Contains(callback))
+                {
+                    handlers.Remove(callback);
+                }
+
+                if (handlers.Count == 0)
+                {
+                    channelHandlers.Remove(channel);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Unregisters the request response callback associated with the given channel. Does nothing if the channel has no callback.
+        /// </summary>
+        /// <param name="channel">The channel the callback is registered on.</param>
+        public void UnregisterRequestResponseChannelCallback(int channel)
+        {
+            if (requestResponseChannelHandlers.ContainsKey(channel))
+            {
+                requestResponseChannelHandlers.Remove(channel);
+            }
+        }
+
+        /// <summary>
+        /// Unregisters the global request response callback.
+        /// </summary>
+        public void UnregisterRequestResponseCallback()
+        {
+            requestResponseMessageHandler = null;
+        }
+
         private void OnMessageReceived(ArkeMessage message, ArkeTcpClient client)
         {
             List<ConnectionMessageReceivedHandler> handlers;
 
-            bool hasHandlers = _channelHandlers.TryGetValue(message.Channel, out handlers);
+            bool hasHandlers = channelHandlers.TryGetValue(message.Channel, out handlers);
 
             if (hasHandlers)
             {

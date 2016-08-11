@@ -35,7 +35,7 @@ namespace Arke
         /// <summary>
         /// The underlying Tcp Client object for this Arke Client.
         /// </summary>
-        public TcpClient TcpClient { get; private set; }
+        internal TcpClient TcpClient { get; private set; }
 
         /// <summary>
         /// Whether or not the client is connected.
@@ -383,6 +383,71 @@ namespace Arke
         public void RegisterRequestResponseCallback(ClientRequestResponseMessageReceivedHandler callback)
         {
             requestResponseMessageHandler = callback;
+        }
+
+        /// <summary>
+        /// Removes all callbacks from all channels.
+        /// </summary>
+        public void ClearChannelCallbacks()
+        {
+            channelHandlers.Clear();
+        }
+
+        /// <summary>
+        /// Unregister all callbacks registered to a specific channel. If there are no callbacks registered on the channel, does nothing.
+        /// </summary>
+        /// <param name="channel">The channel to remove all callbacks from.</param>
+        public void UnregisterAllChannelCallbacks(int channel)
+        {
+            if (channelHandlers.ContainsKey(channel))
+            {
+                channelHandlers.Remove(channel);
+            }
+        }
+
+        /// <summary>
+        /// Removes the specific callback registered on the given channel. If the callback does not exist, does nothing. 
+        /// </summary>
+        /// <param name="channel">The channel to remove the callback from.</param>
+        /// <param name="callback">The callback to remove.</param>
+        public void UnregisterChannelCallback(int channel, ClientMessageReceivedHandler callback)
+        {
+            List<ClientMessageReceivedHandler> handlers;
+
+            bool hasHandlers = channelHandlers.TryGetValue(channel, out handlers);
+
+            if (hasHandlers)
+            {
+                if (handlers.Contains(callback))
+                {
+                    handlers.Remove(callback);
+                }
+
+                if (handlers.Count == 0)
+                {
+                    channelHandlers.Remove(channel);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Unregisters the request response callback associated with the given channel. Does nothing if the channel has no callback.
+        /// </summary>
+        /// <param name="channel">The channel the callback is registered on.</param>
+        public void UnregisterRequestResponseChannelCallback(int channel)
+        {
+            if (requestResponseChannelHandlers.ContainsKey(channel))
+            {
+                requestResponseChannelHandlers.Remove(channel);
+            }
+        }
+
+        /// <summary>
+        /// Unregisters the global request response callback.
+        /// </summary>
+        public void UnregisterRequestResponseCallback()
+        {
+            requestResponseMessageHandler = null;
         }
 
         #region Events
