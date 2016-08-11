@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 
 namespace Arke
 {
@@ -8,6 +9,10 @@ namespace Arke
     public class ArkeMessage
     {
         internal byte[] Content { get; set; }
+
+        internal ArkeControlCode ControlCode { get; set; }
+
+        internal Guid MessageId { get; set; }
 
         /// <summary>
         /// The channel that the message will be sent on.
@@ -29,21 +34,8 @@ namespace Arke
             Channel = 0;
 
             Content = new byte[0];
-        }
 
-        /// <summary>
-        /// Create a new message with the given channel, content, and type.
-        /// </summary>
-        /// <param name="content">The message content.</param>
-        /// <param name="channel">The messages channel.</param>
-        /// <param name="type">The message type.</param>
-        public ArkeMessage(byte[] content, int channel, ArkeContentType type)
-        {
-            ContentType = type;
-
-            Channel = channel;
-
-            Content = content;
+            MessageId = Guid.NewGuid();
         }
 
         /// <summary>
@@ -56,6 +48,8 @@ namespace Arke
             SetContent(content);
 
             Channel = channel;
+
+            MessageId = Guid.NewGuid();
         }
 
         /// <summary>
@@ -68,6 +62,32 @@ namespace Arke
             SetContent(content);
 
             Channel = channel;
+
+            MessageId = Guid.NewGuid();
+        }
+
+        internal ArkeMessage(byte[] content, int channel, ArkeContentType type)
+        {
+            ContentType = type;
+
+            Channel = channel;
+
+            Content = content;
+
+            MessageId = Guid.NewGuid();
+        }
+
+        internal ArkeMessage(byte[] content, int channel, ArkeContentType type, ArkeControlCode controlCode, Guid messageId) : this(content, channel, type)
+        {
+            ContentType = type;
+
+            Channel = channel;
+
+            Content = content;
+
+            ControlCode = controlCode;
+
+            MessageId = messageId;
         }
 
         /// <summary>

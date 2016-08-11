@@ -16,6 +16,10 @@ namespace Arke
 
         private Dictionary<int, List<ConnectionMessageReceivedHandler>> _channelHandlers = new Dictionary<int, List<ConnectionMessageReceivedHandler>>();
 
+        private Dictionary<int, ConnectionRequestResponseMessageReceivedHandler> requestResponseChannelHandlers = new Dictionary<int, ConnectionRequestResponseMessageReceivedHandler>();
+
+        private ConnectionRequestResponseMessageReceivedHandler requestResponseMessageHandler = null;
+
         /// <summary>
         /// The generated Id for this connection.
         /// </summary>
@@ -35,6 +39,8 @@ namespace Arke
             _server = server;
 
             client.MessageReceived += OnMessageReceived;
+
+            client.RegisterRequestResponseCallback(OnRequestReceived);
         }
 
         internal void StartListening()
@@ -57,7 +63,27 @@ namespace Arke
         /// <param name="message">The message to send.</param>
         public void Send(ArkeMessage message)
         {
-            Client.SendAsync(message).Wait();
+            Client.Send(message);
+        }
+
+        /// <summary>
+        /// Send a request and wait for a response from the server.
+        /// </summary>
+        /// <param name="message">The message to send.</param>
+        /// <returns>The response from the server.</returns>
+        public ArkeMessage SendRequest(ArkeMessage message)
+        {
+            return Client.SendRequest(message);
+        }
+
+        /// <summary>
+        /// Send a request and wait for a response from the server.
+        /// </summary>
+        /// <param name="message">The message to send.</param>
+        /// <returns>The response from the server.</returns>
+        public async Task<ArkeMessage> SendRequestAsync(ArkeMessage message)
+        {
+            return await Client.SendRequestAsync(message);
         }
 
         /// <summary>
@@ -80,6 +106,31 @@ namespace Arke
             }
         }
 
+        /// <summary>
+        /// Register a request response callback for a specific channel.
+        /// </summary>
+        /// <param name="channel">The channel to register to.</param>
+        /// <param name="callback">The callback to register.</param>
+        /// <remarks> Only one callback can be registered at a time. If more that one registration is attempted, the previous registration will be overwritten.</remarks>
+        public void RegisterRequestResponseChannelCallback(int channel, ConnectionRequestResponseMessageReceivedHandler callback)
+        {
+            if (requestResponseChannelHandlers.ContainsKey(channel))
+            {
+                requestResponseChannelHandlers.Remove(channel);
+            }
+
+            requestResponseChannelHandlers.Add(channel, callback);
+        }
+
+        /// <summary>
+        /// Register a global request response callback.
+        /// </summary>
+        /// <param name="callback">The callback to register.</param>
+        public void RegisterRequestResponseCallback(ConnectionRequestResponseMessageReceivedHandler callback)
+        {
+            requestResponseMessageHandler = callback;
+        }
+
         private void OnMessageReceived(ArkeMessage message, ArkeTcpClient client)
         {
             List<ConnectionMessageReceivedHandler> handlers;
@@ -92,6 +143,26 @@ namespace Arke
             }
 
             MessageReceived?.Invoke(message, this);
+        }
+
+        private async Task<ArkeMessage> OnRequestReceived(ArkeMessage message, ArkeTcpClient client)
+        {
+            ArkeMessage response = null;
+
+            //first we try for a specific channel handler
+            ConnectionRequestResponseMessageReceivedHandler handler = null;
+
+            requestResponseChannelHandlers.TryGetValue(message.Channel, out handler);
+
+            if (handler != null)
+            {
+                response = await handler?.Invoke(message, this);
+            }
+
+            //Now we do the generic handler last
+            response = await requestResponseMessageHandler?.Invoke(message, this);
+
+            return response;
         }
 
         #region Events
@@ -112,6 +183,14 @@ namespace Arke
     /// <param name="message">The message that was received.</param>
     /// <param name="connection">The connection that received the message.</param>
     public delegate void ConnectionMessageReceivedHandler(ArkeMessage message, ArkeTcpServerConnection connection);
+
+    /// <summary>
+    /// Delegate for the Connection Request Response Message Reception
+    /// </summary>
+    /// <param name="message">The message that was received.</param>
+    /// <param name="connection">The connection the message was received on.</param>
+    /// <returns>The response message.</returns>
+    public delegate Task<ArkeMessage> ConnectionRequestResponseMessageReceivedHandler(ArkeMessage message, ArkeTcpServerConnection connection);
 
     #endregion
 }

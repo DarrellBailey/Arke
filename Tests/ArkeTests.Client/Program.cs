@@ -23,6 +23,10 @@ namespace ArkeTests.Client
 
             CanSendChannelMessage();
 
+            CanSendRequestResponseMessage();
+
+            CanSendRequestResponseChannelMessage();
+
             Console.ReadLine();
         }
 
@@ -59,6 +63,24 @@ namespace ArkeTests.Client
             {
                 Console.WriteLine(message.GetContentAsString());
             });
+        }
+
+        public static void CanSendRequestResponseMessage()
+        {
+            ArkeMessage message = new ArkeMessage("Hello Server! Give Me A Response");
+
+            ArkeMessage response = client.SendRequest(message);
+
+            Console.WriteLine(response.GetContentAsString());
+        }
+
+        public static void CanSendRequestResponseChannelMessage()
+        {
+            ArkeMessage message = new ArkeMessage("Hello Server! Give Me A Response", 1);
+
+            ArkeMessage response = client.SendRequest(message);
+
+            Console.WriteLine(response.GetContentAsString());
         }
     }
 }

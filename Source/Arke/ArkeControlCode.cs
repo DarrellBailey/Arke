@@ -17,6 +17,6 @@ namespace Arke
 
         Request = 4,
 
-        Reply = 5
+        Response = 5
     }
 }

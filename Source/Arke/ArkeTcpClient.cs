@@ -26,9 +26,9 @@ namespace Arke
 
         private Dictionary<int, List<ClientMessageReceivedHandler>> channelHandlers = new Dictionary<int, List<ClientMessageReceivedHandler>>();
 
-        private Dictionary<int, ClientRequestReplyMessageReceivedHandler> requestReplyChannelHandlers = new Dictionary<int, ClientRequestReplyMessageReceivedHandler>();
+        private Dictionary<int, ClientRequestResponseMessageReceivedHandler> requestResponseChannelHandlers = new Dictionary<int, ClientRequestResponseMessageReceivedHandler>();
 
-        private ClientRequestReplyMessageReceivedHandler requestReplyMessageHandler = null;
+        private ClientRequestResponseMessageReceivedHandler requestResponseMessageHandler = null;
 
         private Dictionary<Guid, TaskCompletionSource<ArkeMessage>> requestAwaiters = new Dictionary<Guid, TaskCompletionSource<ArkeMessage>>();
 
@@ -168,21 +168,21 @@ namespace Arke
             byte[] payload = message.Skip(22).ToArray();
 
             //create the message object
-            ArkeMessage messageObject = new ArkeMessage(payload, channel, type);
+            ArkeMessage messageObject = new ArkeMessage(payload, channel, type, controlCode, messageId);
 
             //bubble up the message to the rest of the application
-            await ProcessIncomingMessage(messageId, controlCode, messageObject);
+            await ProcessIncomingMessage(messageObject);
         }
 
-        private async Task ProcessIncomingMessage(Guid messageId, ArkeControlCode controlCode, ArkeMessage message)
+        private async Task ProcessIncomingMessage(ArkeMessage message)
         {
-            switch (controlCode)
+            switch (message.ControlCode)
             {
                 case ArkeControlCode.Request:
-                    await ProcessRequestMessage(messageId, message);
+                    await ProcessRequestMessage(message);
                     break;
-                case ArkeControlCode.Reply:
-                    await ProcessReplyMessage(messageId, message);
+                case ArkeControlCode.Response:
+                    ProcessResponseMessage(message);
                     break;
                 default:
                     OnMessageReceived(message);
@@ -190,38 +190,42 @@ namespace Arke
             }
         }
 
-        private async Task ProcessReplyMessage(Guid messageId, ArkeMessage message)
+        private void ProcessResponseMessage(ArkeMessage message)
         {
             TaskCompletionSource<ArkeMessage> awaiter = null;
 
-            requestAwaiters.TryGetValue(messageId, out awaiter);
+            requestAwaiters.TryGetValue(message.MessageId, out awaiter);
 
             if (awaiter == null) return; //Not really sure what we can do here... 
 
             awaiter.SetResult(message);
         }
 
-        private async Task ProcessRequestMessage(Guid messageId, ArkeMessage message)
+        private async Task ProcessRequestMessage(ArkeMessage message)
         {
-            ArkeMessage reply = null;
+            ArkeMessage response = null;
 
             //first we try for a specific channel handler
-            ClientRequestReplyMessageReceivedHandler handler = null;
+            ClientRequestResponseMessageReceivedHandler handler = null;
 
-            requestReplyChannelHandlers.TryGetValue(message.Channel, out handler);
+            requestResponseChannelHandlers.TryGetValue(message.Channel, out handler);
 
             if(handler != null)
             {
-                reply = await handler?.Invoke(message, this);
+                response = await handler?.Invoke(message, this);
             }
 
             //Now we do the generic handler last
-            reply = await requestReplyMessageHandler?.Invoke(message, this);
+            response = await requestResponseMessageHandler?.Invoke(message, this);
 
-            reply.Channel = message.Channel;
+            response.Channel = message.Channel;
 
-            //send the reply
-            byte[] transferBytes = PrepareMessageForSend(reply, ArkeControlCode.Reply, messageId);
+            response.ControlCode = ArkeControlCode.Response;
+
+            response.MessageId = message.MessageId;
+
+            //send the response
+            byte[] transferBytes = PrepareMessageForSend(response);
 
             await TcpClient.GetStream().WriteAsync(transferBytes, 0, transferBytes.Length);
         }
@@ -257,50 +261,50 @@ namespace Arke
         {
             if (!Connected) throw new ArkeException("Attempt to send data on a disconnected client is not allowed.");
 
-            Guid messageId = Guid.NewGuid();
+            message.ControlCode = ArkeControlCode.Message;
 
-            byte[] transferBytes = PrepareMessageForSend(message, ArkeControlCode.Message, messageId);
+            byte[] transferBytes = PrepareMessageForSend(message);
 
             await TcpClient.GetStream().WriteAsync(transferBytes, 0, transferBytes.Length);
         }
 
         /// <summary>
-        /// Send a request and wait for a reply from the server.
+        /// Send a request and wait for a response from the server.
         /// </summary>
         /// <param name="message">The message to send.</param>
-        /// <returns>The reply from the server.</returns>
+        /// <returns>The response from the server.</returns>
         public ArkeMessage SendRequest(ArkeMessage message)
         {
             return SendRequestAsync(message).Result;
         }
 
         /// <summary>
-        /// Send a request and wait for a reply from the server.
+        /// Send a request and wait for a response from the server.
         /// </summary>
         /// <param name="message">The message to send.</param>
-        /// <returns>The reply from the server.</returns>
+        /// <returns>The response from the server.</returns>
         public async Task<ArkeMessage> SendRequestAsync(ArkeMessage message)
         {
             if (!Connected) throw new ArkeException("Attempt to send data on a disconnected client is not allowed.");
 
-            Guid messageId = Guid.NewGuid();
+            message.ControlCode = ArkeControlCode.Request;
 
-            byte[] transferBytes = PrepareMessageForSend(message, ArkeControlCode.Request, messageId);
+            byte[] transferBytes = PrepareMessageForSend(message);
 
             TaskCompletionSource<ArkeMessage> awaiter = new TaskCompletionSource<ArkeMessage>();
 
-            requestAwaiters.Add(messageId, awaiter);
+            requestAwaiters.Add(message.MessageId, awaiter);
 
             await TcpClient.GetStream().WriteAsync(transferBytes, 0, transferBytes.Length);
 
-            ArkeMessage reply = await awaiter.Task;
+            ArkeMessage response = await awaiter.Task;
 
-            requestAwaiters.Remove(messageId);
+            requestAwaiters.Remove(message.MessageId);
 
-            return reply;
+            return response;
         }
 
-        private byte[] PrepareMessageForSend(ArkeMessage message, ArkeControlCode controlCode, Guid messageId)
+        private byte[] PrepareMessageForSend(ArkeMessage message)
         {
             //get the message channel as an array of bytes
             byte[] channel = BitConverter.GetBytes(message.Channel);
@@ -321,13 +325,13 @@ namespace Arke
             Array.Copy(channel, 0, transferBytes, 4, 4);
 
             //add control code
-            transferBytes[8] = (byte)controlCode;
+            transferBytes[8] = (byte)message.ControlCode;
 
             //add content type
             transferBytes[9] = (byte)message.ContentType;
 
             //add message id guid
-            Array.Copy(messageId.ToByteArray(), 0, transferBytes, 10, 16);
+            Array.Copy(message.MessageId.ToByteArray(), 0, transferBytes, 10, 16);
 
             //add message content
             Array.Copy(message.Content, 0, transferBytes, 26, message.Content.Length);
@@ -341,7 +345,8 @@ namespace Arke
         /// <param name="channel">The channel to register to.</param>
         /// <param name="callback">The callback to register.</param>
         /// <remarks>You can register more than one callback on a single channel.</remarks>
-        public void RegisterChannelCallback(int channel, ClientMessageReceivedHandler callback)        {
+        public void RegisterChannelCallback(int channel, ClientMessageReceivedHandler callback)
+        {
             if (!channelHandlers.ContainsKey(channel))
             {
                 channelHandlers.Add(channel, new List<ClientMessageReceivedHandler>());
@@ -356,19 +361,28 @@ namespace Arke
         }
 
         /// <summary>
-        /// Register a request reply callback for a specific channel.
+        /// Register a request response callback for a specific channel.
         /// </summary>
         /// <param name="channel">The channel to register to.</param>
         /// <param name="callback">The callback to register.</param>
         /// <remarks> Only one callback can be registered at a time. If more that one registration is attempted, the previous registration will be overwritten.</remarks>
-        public void RegisterRequestReplyChannelCallback(int channel, ClientRequestReplyMessageReceivedHandler callback)
+        public void RegisterRequestResponseChannelCallback(int channel, ClientRequestResponseMessageReceivedHandler callback)
         {
-            if (requestReplyChannelHandlers.ContainsKey(channel))
+            if (requestResponseChannelHandlers.ContainsKey(channel))
             {
-                requestReplyChannelHandlers.Remove(channel);
+                requestResponseChannelHandlers.Remove(channel);
             }
 
-            requestReplyChannelHandlers.Add(channel, callback);
+            requestResponseChannelHandlers.Add(channel, callback);
+        }
+
+        /// <summary>
+        /// Register a global request response callback.
+        /// </summary>
+        /// <param name="callback">The callback to register.</param>
+        public void RegisterRequestResponseCallback(ClientRequestResponseMessageReceivedHandler callback)
+        {
+            requestResponseMessageHandler = callback;
         }
 
         #region Events
@@ -422,12 +436,12 @@ namespace Arke
     public delegate void ClientMessageReceivedHandler(ArkeMessage message, ArkeTcpClient client);
 
     /// <summary>
-    /// Delegate for the Client Request Reply Message Reception
+    /// Delegate for the Client Request Response Message Reception
     /// </summary>
     /// <param name="message">The message that was received.</param>
     /// <param name="client">The client the message was received on.</param>
-    /// <returns>The reply message.</returns>
-    public delegate Task<ArkeMessage> ClientRequestReplyMessageReceivedHandler(ArkeMessage message, ArkeTcpClient client);
+    /// <returns>The response message.</returns>
+    public delegate Task<ArkeMessage> ClientRequestResponseMessageReceivedHandler(ArkeMessage message, ArkeTcpClient client);
 
     /// <summary>
     /// Event handler delegate for the ArkeTcpClient Disconnected event.

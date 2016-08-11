@@ -18,6 +18,10 @@ namespace ArkeTests.Server
 
             CanRegisterChannelMessageReceivedEvent();
 
+            CanRegisterRequestResponseCallback();
+
+            CanRegisterRequestResponseChannelCallback();
+
             CanStartListening();
 
             Console.ReadLine();
@@ -57,6 +61,26 @@ namespace ArkeTests.Server
                 Console.WriteLine(" Channel Message '" + message.GetContentAsString() + "' With Content Type: " + message.ContentType + " Received From: " + connection.Id);
 
                 connection.Send(new ArkeMessage("Server: Message Received By Channel 1 Handler"));
+            });
+        }
+
+        public static void CanRegisterRequestResponseCallback()
+        {
+            server.RegisterRequestResponseCallback(async (message, connection) =>
+            {
+                Console.WriteLine(" Channel Message '" + message.GetContentAsString() + "' With Content Type: " + message.ContentType + " Received From: " + connection.Id);
+
+                return new ArkeMessage("Server: Request Response Received By Generic Handler");
+            });
+        }
+
+        public static void CanRegisterRequestResponseChannelCallback()
+        {
+            server.RegisterRequestResponseChannelCallback(1, async (message, connection) =>
+            {
+                Console.WriteLine(" Channel Message '" + message.GetContentAsString() + "' With Content Type: " + message.ContentType + " Received From: " + connection.Id);
+
+                return new ArkeMessage("Server: Request Response Received By Channel 1 Handler");
             });
         }
     }
