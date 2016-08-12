@@ -114,17 +114,28 @@ namespace Arke
 
         private async Task Listen()
         {
-            //get network stream
-            NetworkStream stream = TcpClient.GetStream();
-
-            //enter listen loop
-            while (Connected && !listenCts.IsCancellationRequested)
+            try
             {
-                int bytesRead = await stream.ReadAsync(readBuffer, 0, readBuffer.Length);
+                //get network stream
+                NetworkStream stream = TcpClient.GetStream();
 
-                messageBuffer.AddRange(readBuffer.Take(bytesRead));
+                //enter listen loop
+                while (Connected && !listenCts.IsCancellationRequested)
+                {
+                    int bytesRead = await stream.ReadAsync(readBuffer, 0, readBuffer.Length);
 
-                ProcessIncomingMessageBuffer();
+                    messageBuffer.AddRange(readBuffer.Take(bytesRead));
+
+                    ProcessIncomingMessageBuffer();
+                }
+            }
+            catch (Exception ex)
+            {
+                
+            }
+            finally
+            {
+                Disconnected?.Invoke(this);
             }
         }
 
@@ -457,6 +468,11 @@ namespace Arke
         /// </summary>
         public event ClientMessageReceivedHandler MessageReceived;
 
+        /// <summary>
+        /// Triggered when a client gets disconnected.
+        /// </summary>
+        public event ClientDisconnectedHandler Disconnected;
+
         #endregion
 
         #region IDisposable
@@ -509,7 +525,7 @@ namespace Arke
     public delegate Task<ArkeMessage> ClientRequestResponseMessageReceivedHandler(ArkeMessage message, ArkeTcpClient client);
 
     /// <summary>
-    /// Event handler delegate for the ArkeTcpClient Disconnected event.
+    /// Event handler delegate for the ArkeTcpClient disconnected event.
     /// </summary>
     /// <param name="client">The client that was disconnected.</param>
     public delegate void ClientDisconnectedHandler(ArkeTcpClient client);

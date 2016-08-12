@@ -111,6 +111,8 @@ namespace Arke
 
                 internalConnections.Add(connection.Id, connection);
 
+                connection.Disconnected += OnDisconnected;
+
                 connection.MessageReceived += OnMessageReceived;
 
                 connection.RegisterRequestResponseCallback(OnRequestReceived);
@@ -272,6 +274,16 @@ namespace Arke
             return response;
         }
 
+        private void OnDisconnected(ArkeTcpServerConnection connection)
+        {
+            if (internalConnections.ContainsKey(connection.Id))
+            {
+                internalConnections.Remove(connection.Id);
+            }
+
+            Disconnected?.Invoke(connection);
+        }
+
         #region Events
 
         /// <summary>
@@ -283,6 +295,11 @@ namespace Arke
         /// Event triggered when one of the server connections receives a message.
         /// </summary>
         public event ServerMessageReceivedHandler MessageReceived;
+
+        /// <summary>
+        /// Triggered when a connection gets disconnected.
+        /// </summary>
+        public event ConnectionDisconnectedHandler Disconnected;
 
         #endregion
     }

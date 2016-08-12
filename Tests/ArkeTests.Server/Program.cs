@@ -83,5 +83,13 @@ namespace ArkeTests.Server
                 return new ArkeMessage("Server: Request Response Received By Channel 1 Handler");
             });
         }
+
+        public static void CanDetectDisconnection()
+        {
+            server.Disconnected += connection =>
+            {
+                Console.WriteLine("Client: " + connection.Id + " disconnected.");
+            };
+        }
     }
 }

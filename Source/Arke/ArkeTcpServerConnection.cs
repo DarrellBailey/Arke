@@ -38,6 +38,8 @@ namespace Arke
 
             _server = server;
 
+            client.Disconnected += OnDisconnected;
+
             client.MessageReceived += OnMessageReceived;
 
             client.RegisterRequestResponseCallback(OnRequestReceived);
@@ -230,12 +232,22 @@ namespace Arke
             return response;
         }
 
+        private void OnDisconnected(ArkeTcpClient client)
+        {
+            Disconnected?.Invoke(this);
+        }
+
         #region Events
 
         /// <summary>
         /// Triggered when this connection receives a message.
         /// </summary>
         public event ConnectionMessageReceivedHandler MessageReceived;
+
+        /// <summary>
+        /// Triggered when a connection gets disconnected.
+        /// </summary>
+        public event ConnectionDisconnectedHandler Disconnected;
 
         #endregion
     }
@@ -256,6 +268,12 @@ namespace Arke
     /// <param name="connection">The connection the message was received on.</param>
     /// <returns>The response message.</returns>
     public delegate Task<ArkeMessage> ConnectionRequestResponseMessageReceivedHandler(ArkeMessage message, ArkeTcpServerConnection connection);
+
+    /// <summary>
+    /// Event handler delegate for the ArkeTcpConnection disconnected event.
+    /// </summary>
+    /// <param name="connection">The connection that was disconnected.</param>
+    public delegate void ConnectionDisconnectedHandler(ArkeTcpServerConnection connection);
 
     #endregion
 }

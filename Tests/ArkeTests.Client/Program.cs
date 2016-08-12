@@ -27,6 +27,10 @@ namespace ArkeTests.Client
 
             CanSendRequestResponseChannelMessage();
 
+            CanSeeDisconnect();
+
+            CanDisconnectByDispose();
+
             Console.ReadLine();
         }
 
@@ -81,6 +85,19 @@ namespace ArkeTests.Client
             ArkeMessage response = client.SendRequest(message);
 
             Console.WriteLine(response.GetContentAsString());
+        }
+
+        public static void CanSeeDisconnect()
+        {
+            client.Disconnected += client =>
+            {
+                Console.WriteLine("Client Disconnected");
+            };
+        }
+
+        public static void CanDisconnectByDispose()
+        {
+            client.Dispose();
         }
     }
 }
