@@ -50,8 +50,18 @@ On the server side, we need to set up a listener for incoming messages. The inco
     {
         Console.WriteLine("Message: " + message.GetContentAsString());
     };
+
+From this event we can process the message and use the given connection object to send some message back to the client.
+
+    ArkeTcpServer server = new ArkeTcpServer(1000);
+    server.StartListening();
+    server.MessageReceived += (message, connection) =>
+    {
+        Console.WriteLine("Message: " + message.GetContentAsString());
+        connection.Send(new ArkeMessage("Hello Client, I am Server!"));
+    };
     
-In this example we use the message received event to listen for incoming messages. We can also listen for messages for specific channels. For this, we will need to pass in a callback for that specific channel.
+In the previous example we use the message received event to listen for incoming messages. We can also listen for messages for specific channels. For this, we will need to pass in a callback for that specific channel.
 
 
     
