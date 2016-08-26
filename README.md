@@ -109,7 +109,7 @@ server.RegisterRequestResponseCallback(async (message, connection) =>
     return new ArkeMessage("Hello Client, This Is A Response!");
 });
 ```
-The callback delegate recieves the message and connection just like other callbacks, except for a Request Response callback it also needs to return a `Task<ArkeMessage>`.
+The callback delegate recieves the message and connection just like other callbacks, except for a Request Response callback it also needs to return a `Task<ArkeMessage>`. The message is then returned to the sender as the response.
 
 Finally, we can even register Request Response callbacks against different channels for even more control.
 ```c#
