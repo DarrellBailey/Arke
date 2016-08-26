@@ -489,7 +489,6 @@ namespace Arke
             {
                 if (disposing)
                 {
-                    TcpClient.Dispose();
                     listenCts.Cancel();
                     listenCts.Dispose();
                 }               
