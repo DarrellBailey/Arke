@@ -1,5 +1,5 @@
 # Arke [![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)]() 
-Arke is an event driven and message based network library for .NET Core
+Arke is an event driven and message based network library for .NET Core. Arke is written in fully managed c#, has no external dependencies, and relies on nothing but the .NET framework itself.
 
 #Features
 ###ArkeMessage
@@ -8,6 +8,14 @@ Each request is contained in what is called an "ArkeMessage". This object encaps
 Each request is transmitted on an individual channel. The channel is a 32 bit signed integer value that the receiving end can use to choose different paths or options for the request. All requests are given the default channel "0" but this value can be changed on the ArkeMessage. An application can have as many channels as there are values in a 32 bit integer.
 ###Request Response
 Alongside standard "send and forget" messages, Arke allows developers to send a request and asynchronously wait for a reply to that specific request. The Request-Response pattern can also be used with Channels to provide even more control.
+
+#Install
+
+Get the NuGet Package:
+
+```PM> Install-Package Arke```
+
+[View on NuGet](https://www.nuget.org/packages/Arke/)
 
 #Usage
 ####1.Basic Messages
@@ -111,6 +119,17 @@ server.RegisterRequestResponseChannelCallback(5, async (message, connection) =>
     return new ArkeMessage("Hello Client, This Is A Response!");
 });
 ```
+
+#Roadmap
+1. Create an ArkeMessage from any object. This requires some serialization support which should be reintroduced to .Net Core sometime soon.
+2. Add Publish/Subscribe functionality.  There are many scenarios where, in a networked application, a client may want to subscribe to events on the server. While this could be done in a very rudimentary and inefficient way using channels, introducing true publish/subscribe functionality would be far better.
+
+#Contributing
+1. Fork it!
+2. Create your feature branch: `git checkout -b my-new-feature`
+3. Commit your changes: `git commit -am 'Add some feature'`
+4. Push to the branch: `git push origin my-new-feature`
+5. Submit a pull request :D
 
 
 
