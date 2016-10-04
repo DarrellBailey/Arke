@@ -1,4 +1,4 @@
-﻿namespace Arke
+﻿namespace Arke.Net
 {
     /// <summary>
     /// The content type of an ArkeMessage.
