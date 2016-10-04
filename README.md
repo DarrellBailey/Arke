@@ -1,4 +1,4 @@
-# Arke [![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)]() 
+# Arke [![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)]()  [![Build status](https://ci.appveyor.com/api/projects/status/w55nr7b4typiejxa?svg=true)](https://ci.appveyor.com/project/DarrellBailey/arke)
 Arke is an event driven and message based network library for .NET Core. Arke is written in fully managed c#, has no external dependencies, and relies on nothing but the .NET framework itself.
 
 #Features
