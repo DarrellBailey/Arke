@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 // associated with an assembly.
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Arke")]
+[assembly: AssemblyProduct("Arke.Tests")]
 [assembly: AssemblyTrademark("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible
@@ -16,7 +16,4 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("1489b560-3e8a-4b55-8605-bdaaf2db0fc9")]
-
-//allow the unit testing
-[assembly:InternalsVisibleTo("Arke.Tests")]
+[assembly: Guid("184c1a61-d944-4fc5-95e7-141d57cf9262")]

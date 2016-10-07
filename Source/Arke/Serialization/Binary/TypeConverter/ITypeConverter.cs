@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Arke.Serialization.Binary.TypeConverter
 {
-    interface ITypeConverter<T>
+    internal interface ITypeConverter<T>
     {
         byte[] Serialize(T obj);
 
