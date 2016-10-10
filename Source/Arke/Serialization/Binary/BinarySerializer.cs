@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Arke.Serialization.Binary.TypeConverter;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -31,12 +32,22 @@ namespace Arke.Serialization.Binary
 
         private PropertyInfo[] GetObjectProperties(object obj)
         {
-            return obj.GetType().GetProperties(BindingFlags.Public).Where(x => x.CanRead && x.CanWrite).OrderBy(x => x.Name).ToArray();
+            return obj.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(x => x.CanRead && x.CanWrite).OrderBy(x => x.Name).ToArray();
         }
 
         private byte[] GetPropertyBytes(object obj, PropertyInfo propertyInfo)
         {
-            return new byte[0];
+            return GetPrimitiveBytes(obj, propertyInfo);
+        }
+
+        private byte[] GetPrimitiveBytes(object obj, PropertyInfo propertyInfo)
+        {
+            if (propertyInfo.PropertyType == typeof(byte))
+            {
+                return new ByteConverter().Serialize((byte)obj);
+            }
+
+            throw new ArkeException("Type not supported for Binary Serializer: " + propertyInfo.PropertyType.Name);
         }
     }
 }
