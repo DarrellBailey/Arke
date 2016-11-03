@@ -15,11 +15,7 @@ namespace Arke.Tests.Api
 
         public ArkeApiClientTests()
         {
-            List<KeyValuePair<string, string>> qparams = new List<KeyValuePair<string, string>>();
-
-            qparams.Add(new KeyValuePair<string, string>("api_key", "DEMO_KEY"));
-
-            ArkeApiConfiguration.Default.QueryParameters = qparams.ToArray();
+            ArkeApiConfiguration.Default.QueryParameters.Add(new KeyValuePair<string, string>("api_key", "DEMO_KEY"));
 
             ArkeApiConfiguration.Default.TypeBindings.Add(typeof(NasaPictureOfTheDay), "https://api.nasa.gov/planetary/apod");
         }

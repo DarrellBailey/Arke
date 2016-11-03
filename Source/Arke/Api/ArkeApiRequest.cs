@@ -35,7 +35,7 @@ namespace Arke.Api
 
         private void ProcessQueryVariables()
         {
-            if (_queryParameters.Length > 0 || _configuration.QueryParameters.Length > 0)
+            if (_queryParameters.Length > 0 || _configuration.QueryParameters.Count > 0)
             {
                 List<KeyValuePair<string, string>> queryParams = new List<KeyValuePair<string, string>>();
 

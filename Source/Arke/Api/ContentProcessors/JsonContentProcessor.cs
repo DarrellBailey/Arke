@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Arke.Api.ContentProcessors
 {
-    public class JsonContentProcessor : IContentProcessor
+    internal class JsonContentProcessor : IContentProcessor
     {
         public async Task<T> ProcessContent<T>(HttpContent content)
         {
