@@ -16,9 +16,9 @@ namespace Arke.Api
 
         private readonly ArkeApiConfiguration _configuration;
 
-        private readonly KeyValuePair<string, string>[] _queryVariables;
+        private readonly KeyValuePair<string, string>[] _queryParameters;
 
-        public ArkeApiRequest(string url, HttpMethod method, object content, KeyValuePair<string, string>[] queryVariables, ArkeApiConfiguration configuration)
+        public ArkeApiRequest(string url, HttpMethod method, object content, KeyValuePair<string, string>[] queryParameters, ArkeApiConfiguration configuration)
         {
             _uri = new Uri(url);
 
@@ -28,15 +28,21 @@ namespace Arke.Api
 
             _configuration = configuration;
 
-            _queryVariables = queryVariables;
+            _queryParameters = queryParameters;
 
             ProcessQueryVariables();
         }
 
-        public void ProcessQueryVariables()
+        private void ProcessQueryVariables()
         {
-            if (_queryVariables.Length > 0)
+            if (_queryParameters.Length > 0 || _configuration.QueryParameters.Length > 0)
             {
+                List<KeyValuePair<string, string>> queryParams = new List<KeyValuePair<string, string>>();
+
+                queryParams.AddRange(_queryParameters);
+
+                queryParams.AddRange(_configuration.QueryParameters);
+
                 string url = _uri.ToString();
 
                 if (string.IsNullOrWhiteSpace(_uri.Query))
@@ -44,11 +50,11 @@ namespace Arke.Api
                     url += "?";
                 }
 
-                for (int i = 0; i < _queryVariables.Length; i++)
+                for (int i = 0; i < queryParams.Count; i++)
                 {
-                    url += _queryVariables[i].Key + "=" + _queryVariables[i].Value;
+                    url += queryParams[i].Key + "=" + queryParams[i].Value;
 
-                    if (i < _queryVariables.Length - 1) url += "&";
+                    if (i < queryParams.Count - 1) url += "&";
                 }
 
                 _uri = new Uri(url);
@@ -77,7 +83,7 @@ namespace Arke.Api
                 }
             }
 
-            throw new ArkeException("Currently, only GET,POST,PUT,DELTE are supported in EasyApi.");
+            throw new ArkeException("Currently, only GET,POST,PUT,DELTE are supported in Arke Api.");
         }
     }
 }

@@ -25,6 +25,11 @@ namespace Arke.Api
 
         public IContentProcessor ResponseContentProcessor { get; private set; }
 
+        /// <summary>
+        /// Query parameters that will be appended to the url of all requests using this configuration.
+        /// </summary>
+        public KeyValuePair<string, string>[] QueryParameters { get; set; }
+
         public ArkeApiConfiguration()
         {
             TypeBindings = new Dictionary<Type, string>();
@@ -36,6 +41,8 @@ namespace Arke.Api
             RequestContentProcessor = new JsonContentProcessor();
 
             ResponseContentProcessor = new JsonContentProcessor();
+
+            QueryParameters = new KeyValuePair<string, string>[0];
         }
     }
 }

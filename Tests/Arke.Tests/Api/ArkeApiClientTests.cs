@@ -9,17 +9,25 @@ namespace Arke.Tests.Api
 {
     public class ArkeApiClientTests
     {
-        private ArkeApiClient client = new ArkeApiClient(); 
+        private ArkeApiClient client = new ArkeApiClient();
+
+        private KeyValuePair<string, string>[] queryParams;
 
         public ArkeApiClientTests()
         {
+            List<KeyValuePair<string, string>> qparams = new List<KeyValuePair<string, string>>();
+
+            qparams.Add(new KeyValuePair<string, string>("api_key", "DEMO_KEY"));
+
+            ArkeApiConfiguration.Default.QueryParameters = qparams.ToArray();
+
             ArkeApiConfiguration.Default.TypeBindings.Add(typeof(NasaPictureOfTheDay), "https://api.nasa.gov/planetary/apod");
         }
 
         [Fact]
         public async void CanGet()
         {
-            NasaPictureOfTheDay pod = await client.Get<NasaPictureOfTheDay>(new KeyValuePair<string, string>("api_key", "DEMO_KEY"));
+            NasaPictureOfTheDay pod = await client.Get<NasaPictureOfTheDay>();
 
             Assert.NotNull(pod);
         }
