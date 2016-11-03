@@ -14,8 +14,6 @@ namespace Arke.Api
 
         private readonly object _content;
 
-        private readonly ArkeContentType _responseContentType;
-
         private readonly ArkeApiConfiguration _configuration;
 
         private readonly KeyValuePair<string, string>[] _queryVariables;
