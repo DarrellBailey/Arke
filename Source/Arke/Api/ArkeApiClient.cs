@@ -13,7 +13,7 @@ namespace Arke.Api
         /// </summary>
         /// <typeparam name="T">The type for which to run the request.</typeparam>
         /// <returns>A deserialized instance of the given type from the data returned in the request.</returns>
-        public async Task<T> Get<T>()
+        public async Task<T> Get<T>(params KeyValuePair<string, string>[] queryVariables)
         {
             string url;
 
@@ -24,15 +24,15 @@ namespace Arke.Api
                 throw new ArkeException("No bound url exists for the given type in the default configuration");
             }
 
-            return await Get<T>(url, null, ArkeApiConfiguration.Default);
+            return await Get<T>(url, null, ArkeApiConfiguration.Default, queryVariables);
         }
 
-        public async Task<T> Get<T>(string url)
+        public async Task<T> Get<T>(string url, params KeyValuePair<string, string>[] queryVariables)
         {
-            return await Get<T>(url, null, ArkeApiConfiguration.Default);
+            return await Get<T>(url, null, ArkeApiConfiguration.Default, queryVariables);
         }
 
-        public async Task<T> Get<T>(ArkeApiConfiguration configuration)
+        public async Task<T> Get<T>(ArkeApiConfiguration configuration, params KeyValuePair<string, string>[] queryVariables)
         {
             string url;
 
@@ -43,17 +43,17 @@ namespace Arke.Api
                 throw new ArkeException("No bound url exists for the given type in the given configuration");
             }
 
-            return await Get<T>(url, null, configuration);
+            return await Get<T>(url, null, configuration, queryVariables);
         }
 
-        public async Task<T> Get<T>(string url, ArkeApiConfiguration configuration)
+        public async Task<T> Get<T>(string url, ArkeApiConfiguration configuration, params KeyValuePair<string, string>[] queryVariables)
         {
-            return await Get<T>(url, null, configuration);
+            return await Get<T>(url, null, configuration, queryVariables);
         }
 
-        private async Task<T> Get<T>(string url, object content, ArkeApiConfiguration configuration)
+        private async Task<T> Get<T>(string url, object content, ArkeApiConfiguration configuration, KeyValuePair<string, string>[] queryVariables)
         {
-            ArkeApiRequest request = new ArkeApiRequest(url, HttpMethod.Get, content, configuration);
+            ArkeApiRequest request = new ArkeApiRequest(url, HttpMethod.Get, content, queryVariables ,configuration);
 
             ArkeApiResult result = await request.SendRequest();
 

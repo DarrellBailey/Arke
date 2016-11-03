@@ -13,13 +13,13 @@ namespace Arke.Tests.Api
 
         public ArkeApiClientTests()
         {
-            ArkeApiConfiguration.Default.TypeBindings.Add(typeof(NasaPictureOfTheDay), "https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY");
+            ArkeApiConfiguration.Default.TypeBindings.Add(typeof(NasaPictureOfTheDay), "https://api.nasa.gov/planetary/apod");
         }
 
         [Fact]
         public async void CanGet()
         {
-            NasaPictureOfTheDay pod = await client.Get<NasaPictureOfTheDay>();
+            NasaPictureOfTheDay pod = await client.Get<NasaPictureOfTheDay>(new KeyValuePair<string, string>("api_key", "DEMO_KEY"));
 
             Assert.NotNull(pod);
         }
