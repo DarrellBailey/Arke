@@ -9,9 +9,7 @@ namespace Arke.Tests.Api
 {
     public class ArkeApiClientTests
     {
-        private ArkeApiClient client = new ArkeApiClient();
-
-        private KeyValuePair<string, string>[] queryParams;
+        private readonly ArkeApiClient _client = new ArkeApiClient();
 
         public ArkeApiClientTests()
         {
@@ -23,7 +21,7 @@ namespace Arke.Tests.Api
         [Fact]
         public async void CanGet()
         {
-            NasaPictureOfTheDay pod = await client.Get<NasaPictureOfTheDay>();
+            NasaPictureOfTheDay pod = await _client.Get<NasaPictureOfTheDay>();
 
             Assert.NotNull(pod);
         }

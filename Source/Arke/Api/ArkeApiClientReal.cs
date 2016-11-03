@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace Arke.Api
 {
+    /// <summary>
+    /// Entry point for using Arke Api
+    /// </summary>
     public partial class ArkeApiClient
     {
         /// <summary>
