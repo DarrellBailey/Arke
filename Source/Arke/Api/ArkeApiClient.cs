@@ -9,7 +9,7 @@ namespace Arke.Api
     /// <summary>
     /// Entry point for using Arke Api
     /// </summary>
-    public partial class ArkeApiClient
+    public class ArkeApiClient
     {
         /// <summary>
         /// Run a GET request against the default url binding for the given type.
@@ -51,7 +51,49 @@ namespace Arke.Api
 
         public async Task<T> Get<T>(string url, ArkeApiConfiguration configuration, params KeyValuePair<string, string>[] queryParameters)
         {
-            ArkeApiRequest request = new ArkeApiRequest(url, HttpMethod.Get, null, queryParameters ,configuration);
+            ArkeApiRequest request = new ArkeApiRequest(url, HttpMethod.Get, null, queryParameters, configuration);
+
+            ArkeApiResult result = await request.SendRequest();
+
+            return await result.GetResponseAsObject<T>();
+        }
+
+        public async Task<T> Post<T>(object postData, params KeyValuePair<string, string>[] queryParameters)
+        {
+            string url;
+
+            bool exists = ArkeApiConfiguration.Default.TypeBindings.TryGetValue(typeof(T), out url);
+
+            if (!exists)
+            {
+                throw new ArkeException("No bound url exists for the given type in the default configuration");
+            }
+
+            return await Post<T>(url, postData, ArkeApiConfiguration.Default, queryParameters);
+        }
+
+        public async Task<T> Post<T>(string url, object postData, params KeyValuePair<string, string>[] queryParameters)
+        {
+            return await Post<T>(url, postData, ArkeApiConfiguration.Default, queryParameters);
+        }
+
+        public async Task<T> Post<T>(object postData, ArkeApiConfiguration configuration, params KeyValuePair<string, string>[] queryParameters)
+        {
+            string url;
+
+            bool exists = configuration.TypeBindings.TryGetValue(typeof(T), out url);
+
+            if (!exists)
+            {
+                throw new ArkeException("No bound url exists for the given type in the given configuration");
+            }
+
+            return await Post<T>(url, postData, configuration, queryParameters);
+        }
+
+        public async Task<T> Post<T>(string url, object postData, ArkeApiConfiguration configuration, params KeyValuePair<string, string>[] queryParameters)
+        {
+            ArkeApiRequest request = new ArkeApiRequest(url, HttpMethod.Post, postData, queryParameters, configuration);
 
             ArkeApiResult result = await request.SendRequest();
 
