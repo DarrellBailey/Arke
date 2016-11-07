@@ -14,8 +14,8 @@ namespace Arke.Api
         /// <summary>
         /// Run a GET request against the default url binding for the given type.
         /// </summary>
-        /// <typeparam name="T">The type for which to run the request.</typeparam>
-        /// <returns>A deserialized instance of the given type from the data returned in the request.</returns>
+        /// <param name="queryParameters">Optional query parameters to append to the url.</param>
+        /// <returns></returns>
         public async Task<T> Get<T>(params KeyValuePair<string, string>[] queryParameters)
         {
             string url;
@@ -30,6 +30,13 @@ namespace Arke.Api
             return await Get<T>(url, ArkeApiConfiguration.Default, queryParameters);
         }
 
+        /// <summary>
+        /// Run a GET request against the given url.
+        /// </summary>
+        /// <param name="url">The url to run the GET request against.</param>
+        /// <param name="queryParameters">Optional query parameters to append to the url.</param>
+        /// <typeparam name="T">The type for which to run the request.</typeparam>
+        /// <returns>A deserialized instance of the given type from the data returned in the request.</returns>
         public async Task<T> Get<T>(string url, params KeyValuePair<string, string>[] queryParameters)
         {
             return await Get<T>(url, ArkeApiConfiguration.Default, queryParameters);
