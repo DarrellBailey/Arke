@@ -37,26 +37,42 @@ namespace Arke.Api
         {
             if (_queryParameters.Length > 0 || _configuration.QueryParameters.Count > 0)
             {
-                List<KeyValuePair<string, string>> queryParams = new List<KeyValuePair<string, string>>();
-
-                queryParams.AddRange(_queryParameters);
-
-                queryParams.AddRange(_configuration.QueryParameters);
-
+                //get the given url
                 string url = _uri.ToString();
 
-                if (string.IsNullOrWhiteSpace(_uri.Query))
+                //get all the query parameters in a list
+                List<KeyValuePair<string, string>> queryParams = new List<KeyValuePair<string, string>>();
+                queryParams.AddRange(_queryParameters);
+                queryParams.AddRange(_configuration.QueryParameters);
+
+                //do replaces on any query parameters that have bracket identifiers
+                KeyValuePair<string, string>[] queryParamsArray = queryParams.ToArray();
+                foreach(KeyValuePair<string, string> param in queryParamsArray)
                 {
-                    url += "?";
+                    if(url.Contains("{" + param.Key + "}"))
+                    {
+                        url = url.Replace("{" + param.Key + "}", param.Value);
+                        queryParams.Remove(param);
+                    }
                 }
 
-                for (int i = 0; i < queryParams.Count; i++)
+                //any remaining queryparams will be appended to the url using the standard ?/& syntax
+                if (queryParams.Count > 0)
                 {
-                    url += queryParams[i].Key + "=" + queryParams[i].Value;
+                    if (string.IsNullOrWhiteSpace(_uri.Query))
+                    {
+                        url += "?";
+                    }
 
-                    if (i < queryParams.Count - 1) url += "&";
+                    for (int i = 0; i < queryParams.Count; i++)
+                    {
+                        url += queryParams[i].Key + "=" + queryParams[i].Value;
+
+                        if (i < queryParams.Count - 1) url += "&";
+                    }
                 }
 
+                //we now have a fully built url
                 _uri = new Uri(url);
             }
         }
