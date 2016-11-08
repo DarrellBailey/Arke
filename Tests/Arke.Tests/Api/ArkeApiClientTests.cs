@@ -11,19 +11,36 @@ namespace Arke.Tests.Api
     {
         private readonly ArkeApiClient _client = new ArkeApiClient();
 
+        //test api from https://jsonplaceholder.typicode.com/
+        private readonly string ApiRoot = "https://jsonplaceholder.typicode.com/";
+        private readonly string ApiPosts = "https://jsonplaceholder.typicode.com/posts";
+
+        //test api from nasa picture of the day
+        private readonly string NasaApiRoot = "https://api.nasa.gov/planetary/apod";
+        private readonly KeyValuePair<string, string> NasaApiKey = new KeyValuePair<string, string>("api_key", "DEMO_KEY");
+
         public ArkeApiClientTests()
         {
-            ArkeApiConfiguration.Default.QueryParameters.Add(new KeyValuePair<string, string>("api_key", "DEMO_KEY"));
-
-            ArkeApiConfiguration.Default.TypeBindings.Add(typeof(NasaPictureOfTheDay), "https://api.nasa.gov/planetary/apod");
+            ArkeApiConfiguration.Default.TypeBindings.Add(typeof(Post[]), ApiPosts);
         }
 
         [Fact]
         public async void CanGet()
         {
-            NasaPictureOfTheDay pod = await _client.Get<NasaPictureOfTheDay>();
+            Post[] post = await _client.Get<Post[]>();
 
-            Assert.NotNull(pod);
+            Assert.NotNull(post);
+        }
+
+        public class Post
+        {
+            public int userId { get; set; }
+
+            public int id { get; set; }
+
+            public string title { get; set; }
+
+            public string body { get; set; }
         }
 
         public class NasaPictureOfTheDay
@@ -44,6 +61,5 @@ namespace Arke.Tests.Api
 
             public string url { get; set; }
         }
-
     }
 }
