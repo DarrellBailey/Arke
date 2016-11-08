@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Arke.Api
@@ -74,10 +75,18 @@ namespace Arke.Api
             }
 
             //remove all bracket sections from the url because we couldnt find any suitable parameters to fit in their place
+            Regex regex = new Regex(@"(?<=\{)[^}]*(?=\})", RegexOptions.IgnoreCase);
+            MatchCollection matches = regex.Matches(url);
+            foreach (string key in matches.Cast<Match>().Select(x => x.Value))
+            {
+                url = url.Replace("{" + key + "}", string.Empty);
+            }
 
             //we now have a fully built url
             _uri = new Uri(url);
         }
+
+
 
         public async Task<ArkeApiResult> SendRequest()
         {
