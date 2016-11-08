@@ -18,14 +18,7 @@ namespace Arke.Api
         /// <returns></returns>
         public async Task<T> Get<T>(params KeyValuePair<string, string>[] queryParameters)
         {
-            string url;
-
-            bool exists = ArkeApiConfiguration.Default.TypeBindings.TryGetValue(typeof(T), out url);
-
-            if (!exists)
-            {
-                throw new ArkeException("No bound url exists for the given type in the default configuration");
-            }
+            string url = GetUrlForType<T>();
 
             return await Get<T>(url, ArkeApiConfiguration.Default, queryParameters);
         }
@@ -44,14 +37,7 @@ namespace Arke.Api
 
         public async Task<T> Get<T>(ArkeApiConfiguration configuration, params KeyValuePair<string, string>[] queryParameters)
         {
-            string url;
-
-            bool exists = configuration.TypeBindings.TryGetValue(typeof(T), out url);
-
-            if (!exists)
-            {
-                throw new ArkeException("No bound url exists for the given type in the given configuration");
-            }
+            string url = GetUrlForType<T>();
 
             return await Get<T>(url, configuration, queryParameters);
         }
@@ -67,14 +53,7 @@ namespace Arke.Api
 
         public async Task<T> Post<T>(object postData, params KeyValuePair<string, string>[] queryParameters)
         {
-            string url;
-
-            bool exists = ArkeApiConfiguration.Default.TypeBindings.TryGetValue(typeof(T), out url);
-
-            if (!exists)
-            {
-                throw new ArkeException("No bound url exists for the given type in the default configuration");
-            }
+            string url = GetUrlForType<T>();
 
             return await Post<T>(url, postData, ArkeApiConfiguration.Default, queryParameters);
         }
@@ -86,14 +65,7 @@ namespace Arke.Api
 
         public async Task<T> Post<T>(object postData, ArkeApiConfiguration configuration, params KeyValuePair<string, string>[] queryParameters)
         {
-            string url;
-
-            bool exists = configuration.TypeBindings.TryGetValue(typeof(T), out url);
-
-            if (!exists)
-            {
-                throw new ArkeException("No bound url exists for the given type in the given configuration");
-            }
+            string url = GetUrlForType<T>(configuration);
 
             return await Post<T>(url, postData, configuration, queryParameters);
         }
@@ -105,6 +77,31 @@ namespace Arke.Api
             ArkeApiResult result = await request.SendRequest();
 
             return await result.GetResponseAsObject<T>();
+        }
+
+        public string GetUrlForType<T>(ArkeApiConfiguration configuration = null)
+        {
+            configuration = configuration ?? ArkeApiConfiguration.Default;
+
+            string url = null;
+
+            bool exists = configuration.TypeBindings.TryGetValue(typeof(T), out url);
+
+            if (!exists)
+            {
+                if (typeof(T).IsArray)
+                {
+                    exists = configuration.TypeBindings.TryGetValue(typeof(T).GetElementType(), out url);
+
+                    if (exists) return url;
+                }
+            }
+            else
+            {
+                return url;
+            }
+
+            throw new ArkeException("No bound url exists for the given type in the given configuration");
         }
     }
 }
