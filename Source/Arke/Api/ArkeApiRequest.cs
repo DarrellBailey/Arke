@@ -35,11 +35,11 @@ namespace Arke.Api
 
         private void ProcessQueryVariables()
         {
+            //get the given url
+            string url = _uri.ToString();
+
             if (_queryParameters.Length > 0 || _configuration.QueryParameters.Count > 0)
             {
-                //get the given url
-                string url = _uri.ToString();
-
                 //get all the query parameters in a list
                 List<KeyValuePair<string, string>> queryParams = new List<KeyValuePair<string, string>>();
                 queryParams.AddRange(_queryParameters);
@@ -71,10 +71,12 @@ namespace Arke.Api
                         if (i < queryParams.Count - 1) url += "&";
                     }
                 }
-
-                //we now have a fully built url
-                _uri = new Uri(url);
             }
+
+            //remove all bracket sections from the url because we couldnt find any suitable parameters to fit in their place
+
+            //we now have a fully built url
+            _uri = new Uri(url);
         }
 
         public async Task<ArkeApiResult> SendRequest()
