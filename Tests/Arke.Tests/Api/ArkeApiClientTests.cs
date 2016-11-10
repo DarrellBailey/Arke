@@ -13,7 +13,7 @@ namespace Arke.Tests.Api
 
         //test api from https://jsonplaceholder.typicode.com/
         private readonly string ApiRoot = "https://jsonplaceholder.typicode.com/";
-        private readonly string ApiPosts = "https://jsonplaceholder.typicode.com/posts/{id}";
+        private readonly string ApiPosts = "https://jsonplaceholder.typicode.com/posts/{id}/";
 
         //test api from nasa picture of the day
         private readonly string NasaApiRoot = "https://api.nasa.gov/planetary/apod";
@@ -30,6 +30,23 @@ namespace Arke.Tests.Api
             Post[] post = await _client.Get<Post[]>();
 
             Assert.NotNull(post);
+        }
+
+        [Fact]
+        public async void CanPost()
+        {
+            Post post = new Post()
+            {
+                body = "foo",
+                title = "bar",
+                userId = 1
+            };
+
+            post = await _client.Post<Post>(post);
+
+            Assert.NotNull(post);
+
+            Assert.NotEqual(post.id, default(int));
         }
 
         public class Post
