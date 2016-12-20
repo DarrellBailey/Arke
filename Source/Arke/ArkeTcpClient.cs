@@ -229,6 +229,12 @@ namespace Arke
             //Now we do the generic handler last
             response = await requestResponseMessageHandler?.Invoke(message, this);
 
+            //if the response is null, return the original request object to guarantee continuation
+            if(response == null)
+            {
+                response = message;
+            }
+
             response.Channel = message.Channel;
 
             response.ControlCode = ArkeControlCode.Response;
