@@ -7,7 +7,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Arke.Net
+namespace Arke
 {
     /// <summary>
     /// Arke Tcp Client

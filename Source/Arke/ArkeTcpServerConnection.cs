@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Arke.Net
+namespace Arke
 {
     /// <summary>
     /// An instance of a single connection between an Arke Client and Arke Server

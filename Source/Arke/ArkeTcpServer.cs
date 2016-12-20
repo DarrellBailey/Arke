@@ -6,7 +6,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Collections.Concurrent;
 
-namespace Arke.Net
+namespace Arke
 {
     /// <summary>
     /// Arke Tcp Server
