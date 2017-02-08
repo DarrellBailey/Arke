@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace Arke
 {
     /// <summary>
-    /// Arke Tcp Client
+    /// Arke Client for the Tcp protocol.
     /// </summary>
     public class ArkeTcpClient : IDisposable
     {
@@ -151,7 +151,7 @@ namespace Arke
                 if (messageBuffer.Count() < messageLength) break;
 
                 //get the message data from the buffer
-                byte[] messageBytes = messageBuffer.Skip(4).Take(messageLength - 4).ToArray();
+                byte[] messageBytes = messageBuffer.Take(messageLength).ToArray();
 
                 //clear the message out of the buffer
                 messageBuffer.RemoveRange(0, messageLength);
@@ -163,23 +163,8 @@ namespace Arke
 
         private async Task InterpretIncomingMessage(byte[] message)
         {
-            //the first 4 bytes of the message are the channel
-            int channel = BitConverter.ToInt32(message, 0);
-
-            //the control code is the 5th byte
-            ArkeControlCode controlCode = (ArkeControlCode)message[4];
-
-            //the message type is the 6th byte
-            ArkeContentType type = (ArkeContentType)message[5];
-
-            //the message id is the next 16 bytes
-            Guid messageId = new Guid(message.Skip(6).Take(16).ToArray());
-
-            //the remaining bytes are the payload
-            byte[] payload = message.Skip(22).ToArray();
-
-            //create the message object
-            ArkeMessage messageObject = new ArkeMessage(payload, channel, type, controlCode, messageId);
+            //create the mes the payload
+            ArkeMessage messageObject = ArkeMessage.CreateFromPayload(message);
 
             //bubble up the message to the rest of the application
             await ProcessIncomingMessage(messageObject);
@@ -242,7 +227,7 @@ namespace Arke
             response.MessageId = message.MessageId;
 
             //send the response
-            byte[] transferBytes = PrepareMessageForSend(response);
+            byte[] transferBytes = response.GetMessagePayload();
 
             await TcpClient.GetStream().WriteAsync(transferBytes, 0, transferBytes.Length);
         }
@@ -280,7 +265,7 @@ namespace Arke
 
             message.ControlCode = ArkeControlCode.Message;
 
-            byte[] transferBytes = PrepareMessageForSend(message);
+            byte[] transferBytes = message.GetMessagePayload();
 
             await TcpClient.GetStream().WriteAsync(transferBytes, 0, transferBytes.Length);
         }
@@ -306,7 +291,7 @@ namespace Arke
 
             message.ControlCode = ArkeControlCode.Request;
 
-            byte[] transferBytes = PrepareMessageForSend(message);
+            byte[] transferBytes = message.GetMessagePayload();
 
             TaskCompletionSource<ArkeMessage> awaiter = new TaskCompletionSource<ArkeMessage>();
 
@@ -319,41 +304,6 @@ namespace Arke
             requestAwaiters.Remove(message.MessageId);
 
             return response;
-        }
-
-        private byte[] PrepareMessageForSend(ArkeMessage message)
-        {
-            //get the message channel as an array of bytes
-            byte[] channel = BitConverter.GetBytes(message.Channel);
-
-            //the message length - 4 bytes for length int, 22 bytes for channel, message id guid, control code, and content type header, add payload length
-            int length = 4 + 22 + message.Content.Count();
-
-            //the length in bytes
-            byte[] lengthBytes = BitConverter.GetBytes(length);
-
-            //the byte data to transfer
-            byte[] transferBytes = new byte[length];
-
-            //add message length
-            Array.Copy(lengthBytes, 0, transferBytes, 0, 4);
-
-            //add message channel
-            Array.Copy(channel, 0, transferBytes, 4, 4);
-
-            //add control code
-            transferBytes[8] = (byte)message.ControlCode;
-
-            //add content type
-            transferBytes[9] = (byte)message.ContentType;
-
-            //add message id guid
-            Array.Copy(message.MessageId.ToByteArray(), 0, transferBytes, 10, 16);
-
-            //add message content
-            Array.Copy(message.Content, 0, transferBytes, 26, message.Content.Length);
-
-            return transferBytes;
         }
 
         /// <summary>

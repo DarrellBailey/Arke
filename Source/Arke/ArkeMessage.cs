@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using System.Linq;
 
 namespace Arke
 {
@@ -128,6 +129,71 @@ namespace Arke
         public string GetContentAsString()
         {
             return Encoding.UTF8.GetString(Content);
+        }
+
+        /// <summary>
+        /// Creates an over the wire payload from the current message object.
+        /// </summary>
+        /// <returns>The message as a byte array</returns>
+        internal byte[] GetMessagePayload()
+        {
+            //get the message channel as an array of bytes
+            byte[] channel = BitConverter.GetBytes(Channel);
+
+            //the message length - 4 bytes for length int, 22 bytes for channel, message id guid, control code, and content type header, add payload length
+            int length = 4 + 22 + Content.Length;
+
+            //the length in bytes
+            byte[] lengthBytes = BitConverter.GetBytes(length);
+
+            //the byte data to transfer
+            byte[] transferBytes = new byte[length];
+
+            //add message length
+            Array.Copy(lengthBytes, 0, transferBytes, 0, 4);
+
+            //add message channel
+            Array.Copy(channel, 0, transferBytes, 4, 4);
+
+            //add control code
+            transferBytes[8] = (byte)ControlCode;
+
+            //add content type
+            transferBytes[9] = (byte)ContentType;
+
+            //add message id guid
+            Array.Copy(MessageId.ToByteArray(), 0, transferBytes, 10, 16);
+
+            //add message content
+            Array.Copy(Content, 0, transferBytes, 26, Content.Length);
+
+            return transferBytes;
+        }
+
+        /// <summary>
+        /// Create an ArkeMessage object from an over the wire payload.
+        /// </summary>
+        /// <param name="payload">The byte array payload.</param>
+        /// <returns>The newly created arke message from the payload.</returns>
+        internal static ArkeMessage CreateFromPayload(byte[] payload)
+        {
+            //the first 4 bytes of the message are the channel
+            int channel = BitConverter.ToInt32(payload, 4);
+
+            //the control code is the 5th byte
+            ArkeControlCode controlCode = (ArkeControlCode)payload[8];
+
+            //the message type is the 6th byte
+            ArkeContentType type = (ArkeContentType)payload[9];
+
+            //the message id is the next 16 bytes
+            Guid messageId = new Guid(payload.Skip(10).Take(16).ToArray());
+
+            //the remaining bytes are the payload
+            byte[] content = payload.Skip(26).ToArray();
+
+            //create the message object
+            return new ArkeMessage(content, channel, type, controlCode, messageId);
         }
     }
 }
