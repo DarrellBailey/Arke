@@ -1,9 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.27428.2037
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Arke", "Arke\Arke.xproj", "{1489B560-3E8A-4B55-8605-BDAAF2DB0FC9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arke.Net", "Arke.Net\Arke.Net.csproj", "{8742EA98-87E1-49C8-AC9A-A7871E8F81DE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arke.Common", "Arke.Common\Arke.Common.csproj", "{C91503A5-9A9E-4B75-AE87-B842805053A1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arke.Net.Tests", "Arke.Net.Tests\Arke.Net.Tests.csproj", "{9317493A-6BF0-456B-BD68-66362C8B90DF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arke.Common.Tests", "Arke.Common.Tests\Arke.Common.Tests.csproj", "{A7ED7E15-6FD7-413E-8983-576906772C68}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,12 +17,27 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{1489B560-3E8A-4B55-8605-BDAAF2DB0FC9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1489B560-3E8A-4B55-8605-BDAAF2DB0FC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1489B560-3E8A-4B55-8605-BDAAF2DB0FC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1489B560-3E8A-4B55-8605-BDAAF2DB0FC9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8742EA98-87E1-49C8-AC9A-A7871E8F81DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8742EA98-87E1-49C8-AC9A-A7871E8F81DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8742EA98-87E1-49C8-AC9A-A7871E8F81DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8742EA98-87E1-49C8-AC9A-A7871E8F81DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C91503A5-9A9E-4B75-AE87-B842805053A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C91503A5-9A9E-4B75-AE87-B842805053A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C91503A5-9A9E-4B75-AE87-B842805053A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C91503A5-9A9E-4B75-AE87-B842805053A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9317493A-6BF0-456B-BD68-66362C8B90DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9317493A-6BF0-456B-BD68-66362C8B90DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9317493A-6BF0-456B-BD68-66362C8B90DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9317493A-6BF0-456B-BD68-66362C8B90DF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7ED7E15-6FD7-413E-8983-576906772C68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7ED7E15-6FD7-413E-8983-576906772C68}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7ED7E15-6FD7-413E-8983-576906772C68}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7ED7E15-6FD7-413E-8983-576906772C68}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {84649DC3-7728-4F6E-952A-0E045939C3D9}
 	EndGlobalSection
 EndGlobal
