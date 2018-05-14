@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27428.2037
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arke.Net", "Arke.Net\Arke.Net.csproj", "{8742EA98-87E1-49C8-AC9A-A7871E8F81DE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arke.Net.Tests", "Arke.Net.Tests\Arke.Net.Tests.csproj", "{9317493A-6BF0-456B-BD68-66362C8B90DF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arke.Common", "Arke.Common\Arke.Common.csproj", "{C91503A5-9A9E-4B75-AE87-B842805053A1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arke.Common.Tests", "Arke.Common.Tests\Arke.Common.Tests.csproj", "{A7ED7E15-6FD7-413E-8983-576906772C68}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arke.Net.Tests", "Arke.Net.Tests\Arke.Net.Tests.csproj", "{9317493A-6BF0-456B-BD68-66362C8B90DF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arke.Common", "Arke.Common\Arke.Common.csproj", "{5D2F20CE-24FC-46EB-B9D5-9BEAACDEAAC0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arke.Common.Tests", "Arke.Common.Tests\Arke.Common.Tests.csproj", "{A7ED7E15-6FD7-413E-8983-576906772C68}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arke.Net", "Arke.Net\Arke.Net.csproj", "{9C05DD66-6919-4D95-B4C5-ECF4144D6228}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,14 +17,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{8742EA98-87E1-49C8-AC9A-A7871E8F81DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8742EA98-87E1-49C8-AC9A-A7871E8F81DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8742EA98-87E1-49C8-AC9A-A7871E8F81DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8742EA98-87E1-49C8-AC9A-A7871E8F81DE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C91503A5-9A9E-4B75-AE87-B842805053A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C91503A5-9A9E-4B75-AE87-B842805053A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C91503A5-9A9E-4B75-AE87-B842805053A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C91503A5-9A9E-4B75-AE87-B842805053A1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9317493A-6BF0-456B-BD68-66362C8B90DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9317493A-6BF0-456B-BD68-66362C8B90DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9317493A-6BF0-456B-BD68-66362C8B90DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -33,6 +25,14 @@ Global
 		{A7ED7E15-6FD7-413E-8983-576906772C68}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A7ED7E15-6FD7-413E-8983-576906772C68}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A7ED7E15-6FD7-413E-8983-576906772C68}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5D2F20CE-24FC-46EB-B9D5-9BEAACDEAAC0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5D2F20CE-24FC-46EB-B9D5-9BEAACDEAAC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5D2F20CE-24FC-46EB-B9D5-9BEAACDEAAC0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5D2F20CE-24FC-46EB-B9D5-9BEAACDEAAC0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C05DD66-6919-4D95-B4C5-ECF4144D6228}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C05DD66-6919-4D95-B4C5-ECF4144D6228}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C05DD66-6919-4D95-B4C5-ECF4144D6228}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C05DD66-6919-4D95-B4C5-ECF4144D6228}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
