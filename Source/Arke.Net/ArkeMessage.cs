@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Text;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.IO;
 
 namespace Arke.Net
 {
@@ -67,6 +69,20 @@ namespace Arke.Net
             MessageId = Guid.NewGuid();
         }
 
+        /// <summary>
+        /// Create a new message with the given content and optional channel.
+        /// </summary>
+        /// <param name="content">The message content.</param>
+        /// <param name="channel">The message channel</param>
+        public ArkeMessage(object content, int channel = 0)
+        {
+            SetContent(content);
+
+            Channel = channel;
+
+            MessageId = Guid.NewGuid();
+        }
+
         internal ArkeMessage(byte[] content, int channel, ArkeContentType type)
         {
             ContentType = type;
@@ -114,6 +130,24 @@ namespace Arke.Net
         }
 
         /// <summary>
+        /// Sets the message content from an object.
+        /// </summary>
+        /// <param name="content">The object to set as the message content.</param>
+        /// <remarks>The object is serialized using the built in BinaryFromatter.</remarks>
+        public void SetContent(object content)
+        {
+            BinaryFormatter formatter = new BinaryFormatter();
+
+            MemoryStream stream = new MemoryStream();
+
+            formatter.Serialize(stream, content);
+
+            Content = stream.ToArray();
+
+            ContentType = ArkeContentType.Object;
+        }
+
+        /// <summary>
         /// Get the message content as an array of bytes.
         /// </summary>
         /// <returns>The message content as an array of bytes.</returns>
@@ -129,6 +163,19 @@ namespace Arke.Net
         public string GetContentAsString()
         {
             return Encoding.UTF8.GetString(Content);
+        }
+
+        /// <summary>
+        /// Get the message content as an object.
+        /// </summary>
+        /// <returns>The message content as an object.</returns>
+        public object GetContentAsObject()
+        {
+            BinaryFormatter formatter = new BinaryFormatter();
+
+            MemoryStream stream = new MemoryStream(Content);
+
+            return formatter.Deserialize(stream);
         }
 
         /// <summary>

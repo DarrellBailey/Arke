@@ -41,6 +41,18 @@ namespace Arke.Net.Tests
             Assert.AreNotEqual(message.MessageId, Guid.Empty);
         }
 
+        [TestMethod]
+        public void CreateSerializedMessage()
+        {
+            ArkeMessage message = new ArkeMessage(TestData.TestObject);
+            TestObject deserialized = (TestObject)message.GetContentAsObject();
+
+            Assert.IsTrue(Enumerable.SequenceEqual(TestData.TestObject.TestBytes, deserialized.TestBytes));
+            Assert.AreEqual(TestData.TestObject.TestDouble, deserialized.TestDouble);
+            Assert.AreEqual(TestData.TestObject.TestInteger, deserialized.TestInteger);
+            Assert.AreEqual(TestData.TestObject.TestString, deserialized.TestString);
+        }
+
 
         [TestMethod]
         public void CreateBytesMessageWithChannel()
@@ -63,5 +75,20 @@ namespace Arke.Net.Tests
             Assert.AreEqual(message.GetContentAsString(), TestData.TestString);
             Assert.AreNotEqual(message.MessageId, Guid.Empty);
         }
+
+        [TestMethod]
+        public void CreateSerializedMessageWithChannel()
+        {
+            ArkeMessage message = new ArkeMessage(TestData.TestObject, 100);
+            TestObject deserialized = (TestObject)message.GetContentAsObject();
+
+            Assert.AreEqual(message.Channel, 100);
+            Assert.IsTrue(Enumerable.SequenceEqual(TestData.TestObject.TestBytes, deserialized.TestBytes));
+            Assert.AreEqual(TestData.TestObject.TestDouble, deserialized.TestDouble);
+            Assert.AreEqual(TestData.TestObject.TestInteger, deserialized.TestInteger);
+            Assert.AreEqual(TestData.TestObject.TestString, deserialized.TestString);
+        }
+
+
     }
 }
