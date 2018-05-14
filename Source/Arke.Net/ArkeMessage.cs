@@ -179,6 +179,16 @@ namespace Arke.Net
         }
 
         /// <summary>
+        /// Get the message content as the given type.
+        /// </summary>
+        /// <typeparam name="T">The type to deserialize the content as.</typeparam>
+        /// <returns>The message content as the given type.</returns>
+        public T GetContent<T>()
+        {
+            return (T)GetContentAsObject();
+        }
+
+        /// <summary>
         /// Creates an over the wire payload from the current message object.
         /// </summary>
         /// <returns>The message as a byte array</returns>
