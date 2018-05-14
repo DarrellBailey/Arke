@@ -48,7 +48,7 @@ namespace Arke.Net
         /// <param name="channel">The message channel</param>
         public ArkeMessage(byte[] content, int channel = 0)
         {
-            SetContent(content);
+            SetContentAsBytes(content);
 
             Channel = channel;
 
@@ -62,7 +62,7 @@ namespace Arke.Net
         /// <param name="channel">The message channel</param>
         public ArkeMessage(string content, int channel = 0)
         {
-            SetContent(content);
+            SetContentAsString(content);
 
             Channel = channel;
 
@@ -111,7 +111,7 @@ namespace Arke.Net
         /// Sets the message content from an array of bytes.
         /// </summary>
         /// <param name="content">The byte array to set as the message content.</param>
-        public void SetContent(byte[] content)
+        public void SetContentAsBytes(byte[] content)
         {
             Content = content;
 
@@ -122,7 +122,7 @@ namespace Arke.Net
         /// Sets the message content from a string.
         /// </summary>
         /// <param name="content">The string to set as the message content.</param>
-        public void SetContent(string content)
+        public void SetContentAsString(string content)
         {
             Content = Encoding.UTF8.GetBytes(content);
 
@@ -169,7 +169,7 @@ namespace Arke.Net
         /// Get the message content as an object.
         /// </summary>
         /// <returns>The message content as an object.</returns>
-        public object GetContentAsObject()
+        public object GetContent()
         {
             BinaryFormatter formatter = new BinaryFormatter();
 
@@ -185,7 +185,7 @@ namespace Arke.Net
         /// <returns>The message content as the given type.</returns>
         public T GetContent<T>()
         {
-            return (T)GetContentAsObject();
+            return (T)GetContent();
         }
 
         /// <summary>

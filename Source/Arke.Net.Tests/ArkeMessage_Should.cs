@@ -45,8 +45,9 @@ namespace Arke.Net.Tests
         public void CreateSerializedMessage()
         {
             ArkeMessage message = new ArkeMessage(TestData.TestObject);
-            TestObject deserialized = (TestObject)message.GetContentAsObject();
+            TestObject deserialized = (TestObject)message.GetContent();
 
+            Assert.AreEqual(message.ContentType, ArkeContentType.Object);
             Assert.IsTrue(Enumerable.SequenceEqual(TestData.TestObject.TestBytes, deserialized.TestBytes));
             Assert.AreEqual(TestData.TestObject.TestDouble, deserialized.TestDouble);
             Assert.AreEqual(TestData.TestObject.TestInteger, deserialized.TestInteger);
@@ -59,6 +60,7 @@ namespace Arke.Net.Tests
             ArkeMessage message = new ArkeMessage(TestData.TestObject);
             TestObject deserialized = message.GetContent<TestObject>();
 
+            Assert.AreEqual(message.ContentType, ArkeContentType.Object);
             Assert.IsTrue(Enumerable.SequenceEqual(TestData.TestObject.TestBytes, deserialized.TestBytes));
             Assert.AreEqual(TestData.TestObject.TestDouble, deserialized.TestDouble);
             Assert.AreEqual(TestData.TestObject.TestInteger, deserialized.TestInteger);
@@ -92,9 +94,10 @@ namespace Arke.Net.Tests
         public void CreateSerializedMessageWithChannel()
         {
             ArkeMessage message = new ArkeMessage(TestData.TestObject, 100);
-            TestObject deserialized = (TestObject)message.GetContentAsObject();
+            TestObject deserialized = (TestObject)message.GetContent();
 
             Assert.AreEqual(message.Channel, 100);
+            Assert.AreEqual(message.ContentType, ArkeContentType.Object);
             Assert.IsTrue(Enumerable.SequenceEqual(TestData.TestObject.TestBytes, deserialized.TestBytes));
             Assert.AreEqual(TestData.TestObject.TestDouble, deserialized.TestDouble);
             Assert.AreEqual(TestData.TestObject.TestInteger, deserialized.TestInteger);
@@ -108,6 +111,7 @@ namespace Arke.Net.Tests
             TestObject deserialized = message.GetContent<TestObject>();
 
             Assert.AreEqual(message.Channel, 100);
+            Assert.AreEqual(message.ContentType, ArkeContentType.Object);
             Assert.IsTrue(Enumerable.SequenceEqual(TestData.TestObject.TestBytes, deserialized.TestBytes));
             Assert.AreEqual(TestData.TestObject.TestDouble, deserialized.TestDouble);
             Assert.AreEqual(TestData.TestObject.TestInteger, deserialized.TestInteger);
