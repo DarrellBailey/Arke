@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Arke.E2E.Common
 {
-    public abstract class EndToEnd
+    public abstract class EndToEnd : IDisposable
     {
         public abstract string TestName { get; }
 
@@ -13,17 +13,23 @@ namespace Arke.E2E.Common
 
         public void LogDebug(string message)
         {
-
+            Console.WriteLine(message);
         }
 
         public void LogWarn(string message)
         {
-
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine(message);
+            Console.ForegroundColor = ConsoleColor.White;
         }
 
         public void LogError(string message)
         {
-
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine(message);
+            Console.ForegroundColor = ConsoleColor.White;
         }
+
+        public abstract void Dispose();
     }
 }

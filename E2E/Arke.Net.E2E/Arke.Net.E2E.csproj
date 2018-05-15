@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Source\Arke.Net\Arke.Net.csproj" />
     <ProjectReference Include="..\Arke.E2E.Common\Arke.E2E.Common.csproj" />
   </ItemGroup>
 
