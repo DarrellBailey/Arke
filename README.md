@@ -1,15 +1,15 @@
 # Arke [![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)]()  [![Build status](https://ci.appveyor.com/api/projects/status/w55nr7b4typiejxa?svg=true)](https://ci.appveyor.com/project/DarrellBailey/arke)
 Arke is an event driven and message based network library for .NET Core. Arke is written in fully managed c#, has no external dependencies, and relies on nothing but the .NET framework itself.
 
-#Features
-###ArkeMessage
+# Features
+### ArkeMessage
 Each request is contained in what is called an "ArkeMessage". This object encapsulates the request and any associated data and is copied 1-to-1 on both the sender and receiver sides.
-###Channels
-Each request is transmitted on an individual channel. The channel is a 32 bit signed integer value that the receiving end can use to choose different paths or options for the request. All requests are given the default channel "0" but this value can be changed on the ArkeMessage. An application can have as many channels as there are values in a 32 bit integer.
-###Request Response
+### Channels
+Each request is transmitted on an individual channel. The channel is a 32 bit signed integer value that the receiving end can use to choose different paths or options for the request. All requests are given the default channel "0" but this value can be changed on the ArkeMessage. An application can have as many channels as there are values in a 32 bit integer (2^32).
+### Request Response
 Alongside standard "send and forget" messages, Arke allows developers to send a request and asynchronously wait for a reply to that specific request. The Request-Response pattern can also be used with Channels to provide even more control.
 
-#Install
+# Install
 
 Get the NuGet Package:
 
@@ -17,8 +17,8 @@ Get the NuGet Package:
 
 [View on NuGet](https://www.nuget.org/packages/Arke/)
 
-#Usage
-####1.Basic Messages
+# Usage
+#### 1.Basic Messages
 The most basic network operation is to connect to a server. Lets connect to localhost at port 1000.
 ```c#
 ArkeTcpClient client = new ArkeTcpClient();
@@ -84,7 +84,7 @@ server.RegisterChannelCallback(5, (message, connection) =>
 
 You can pass in as many callbacks for each channel as you would like, and each will get called in the order that they were registered. Note: Every message that is not given a specific channel assumes the channel 0. Registering a callback on channel 0 will make that callback be called for every non assigned message.
 
-####2.Request Response
+#### 2.Request Response
 
 Creating a request and waiting for a response is just as easy as sending a fire and forget message. 
 
@@ -120,11 +120,11 @@ server.RegisterRequestResponseChannelCallback(5, async (message, connection) =>
 });
 ```
 
-#Roadmap
+# Roadmap
 1. Create an ArkeMessage from any object. This requires some serialization support which should be reintroduced to .Net Core sometime soon.
 2. Add Publish/Subscribe functionality.  There are many scenarios where, in a networked application, a client may want to subscribe to events on the server. While this could be done in a very rudimentary and inefficient way using channels, introducing true publish/subscribe functionality would be far better.
 
-#Contributing
+# Contributing
 1. Fork it!
 2. Create your feature branch: `git checkout -b my-new-feature`
 3. Commit your changes: `git commit -am 'Add some feature'`
